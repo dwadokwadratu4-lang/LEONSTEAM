@@ -1,0 +1,4613 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#11151C" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Leon's Team" />
+    <link id="pwa-apple-icon" rel="apple-touch-icon" href="" />
+    <link id="pwa-favicon" rel="icon" type="image/png" href="" />
+    <link id="pwa-manifest-link" rel="manifest" href="" />
+    <title>HIGH VOLTAGE: LEON'S TEAM — Zespół Leona</title>
+    <meta name="description" content="HIGH VOLTAGE: LEON'S TEAM (Zespół Leona) — Izometryczna taktyczna symulacja fabryczna 2.5D." />
+    <meta property="og:title" content="HIGH VOLTAGE: LEON'S TEAM" />
+    <meta property="og:description" content="Zespół Leona — Izometryczna gra taktyczna 2.5D." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <style>
+      :root {
+        --bg-deep: #15181d;
+        --hud-bg: rgba(17, 21, 28, 0.86);
+        --hud-border: rgba(116, 127, 143, 0.28);
+        --amber: #f5a623;
+        --amber-dim: rgba(245, 166, 35, 0.16);
+        --blue-team: #1e6fd9;
+        --cyan-ring: #4da6ff;
+        --red-dot: #ff2e3b;
+        --led-red: #ff3333;
+        --led-orange: #ff9900;
+        --led-green: #1fd16a;
+        --lime-bar: #2ceaa3;
+        --beige-team: #d6b485;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --font-sans: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      *, *::before, *::after {
+        box-sizing: border-box;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg-deep);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        touch-action: none;
+      }
+
+      #game-root {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 45%, #232830 0%, #15181d 82%);
+      }
+
+      canvas#game-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: crosshair;
+      }
+
+      /* Top HUD Bar */
+      #top-hud {
+        position: absolute;
+        top: 10px;
+        left: 12px;
+        right: 12px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 14px;
+        background: var(--hud-bg);
+        border: 1px solid var(--hud-border);
+        border-radius: 10px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        pointer-events: auto;
+      }
+
+      .hud-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        flex-shrink: 0;
+      }
+
+      .brand-mark {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        padding: 3px 6px;
+        margin: -3px -6px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--font-sans);
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        color: #f8fafc;
+        white-space: nowrap;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 140ms ease, opacity 140ms ease;
+      }
+
+      .brand-mark:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .brand-mark:focus-visible {
+        outline: 2px solid var(--amber);
+        outline-offset: 2px;
+      }
+
+      .brand-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--red-dot);
+        box-shadow: 0 0 8px rgba(255, 46, 59, 0.75);
+        flex-shrink: 0;
+      }
+
+      .hall-tabs,
+      .lang-tabs {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 3px;
+        background: rgba(15, 18, 24, 0.8);
+        border: 1px solid rgba(116, 127, 143, 0.22);
+        border-radius: 7px;
+      }
+
+      .hall-tab,
+      .lang-tab {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background-color 140ms ease, color 140ms ease;
+      }
+
+      .lang-tab {
+        padding: 5px 7px;
+      }
+
+      .hall-tab:hover,
+      .lang-tab:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .hall-tab.active,
+      .lang-tab.active {
+        background: var(--amber);
+        color: #11151c;
+      }
+
+      .hud-metrics {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .metric-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      }
+
+      .metric-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .led-stat {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: 12px;
+      }
+
+      .led-swatch {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      .swatch-green { background: var(--led-green); box-shadow: 0 0 6px rgba(31, 209, 106, 0.65); }
+      .swatch-orange { background: var(--led-orange); box-shadow: 0 0 6px rgba(255, 153, 0, 0.65); }
+      .swatch-red { background: var(--led-red); box-shadow: 0 0 6px rgba(255, 51, 51, 0.65); }
+
+      .worker-stat {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        color: #e2e8f0;
+      }
+
+      .sep {
+        color: rgba(148, 163, 184, 0.4);
+      }
+
+      .hud-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .brand-mark .title-full-stack {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.04;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .hud-timer {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--amber);
+        min-width: 52px;
+        text-align: right;
+      }
+
+      .hud-timer.warn {
+        color: #ff9900;
+      }
+
+      .hud-timer.crit {
+        color: #ff4d4d;
+      }
+
+      .icon-btn {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 36px;
+        min-width: 36px;
+        padding: 0 10px;
+        border-radius: 7px;
+        border: 1px solid rgba(116, 127, 143, 0.35);
+        background: rgba(30, 36, 46, 0.85);
+        color: #f1f5f9;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: border-color 140ms ease, background-color 140ms ease, transform 100ms ease;
+      }
+
+      .icon-btn:hover {
+        border-color: var(--amber);
+        background: rgba(45, 53, 66, 0.95);
+      }
+
+      .icon-btn:active {
+        transform: scale(0.96);
+      }
+
+      .icon-btn.muted {
+        border-color: rgba(255, 51, 51, 0.5);
+        color: #fca5a5;
+        background: rgba(65, 22, 26, 0.65);
+      }
+
+      /* Tactical Alert Banner */
+      #tactical-banner {
+        position: absolute;
+        top: 66px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 18;
+        padding: 6px 14px;
+        border-radius: 7px;
+        background: rgba(17, 21, 28, 0.88);
+        border: 1px solid rgba(245, 166, 35, 0.45);
+        color: #fde68a;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 180ms ease;
+      }
+
+      #tactical-banner.visible {
+        opacity: 1;
+      }
+
+      /* Bottom Controls (Desktop Hint + Mobile Touch D-pad & Action Button) */
+      #controls-layer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        pointer-events: none;
+      }
+
+      /* Virtual Joystick / D-pad */
+      #touch-pad-wrap {
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #joystick-base {
+        position: relative;
+        width: 112px;
+        height: 112px;
+        border-radius: 50%;
+        background: rgba(17, 21, 28, 0.78);
+        border: 2px solid rgba(116, 127, 143, 0.42);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: none;
+      }
+
+      .joy-cross-h, .joy-cross-v {
+        position: absolute;
+        background: rgba(116, 127, 143, 0.22);
+        pointer-events: none;
+      }
+      .joy-cross-h { width: 72%; height: 1px; }
+      .joy-cross-v { height: 72%; width: 1px; }
+
+      #joystick-knob {
+        position: absolute;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #4da6ff, #1e6fd9);
+        border: 2px solid #93c5fd;
+        box-shadow: 0 4px 12px rgba(30, 111, 217, 0.55);
+        transform: translate(0px, 0px);
+        pointer-events: none;
+      }
+
+      /* Desktop subtle control legend */
+      #desktop-legend {
+        pointer-events: none;
+        background: var(--hud-bg);
+        border: 1px solid var(--hud-border);
+        border-radius: 8px;
+        padding: 7px 12px;
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #desktop-legend kbd {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: #262c36;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        color: #f8fafc;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      /* Contextual Primary Action Button */
+      #action-wrap {
+        pointer-events: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+      }
+
+      #context-hint {
+        background: var(--hud-bg);
+        border: 1px solid var(--hud-border);
+        border-radius: 6px;
+        padding: 4px 9px;
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
+      #primary-action-btn {
+        appearance: none;
+        min-width: 152px;
+        min-height: 58px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: 2px solid rgba(245, 166, 35, 0.55);
+        background: rgba(17, 21, 28, 0.9);
+        color: #f8fafc;
+        font-family: var(--font-sans);
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        transition: transform 100ms ease, background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+      }
+
+      #primary-action-btn:active {
+        transform: scale(0.95);
+      }
+
+      #primary-action-btn.mode-start {
+        background: #f5a623;
+        border-color: #fde68a;
+        color: #11151c;
+      }
+
+      #primary-action-btn.mode-finish {
+        background: #1fd16a;
+        border-color: #86efac;
+        color: #082012;
+      }
+
+      #primary-action-btn.mode-voltage {
+        background: #4da6ff;
+        border-color: #bae6fd;
+        color: #07192e;
+      }
+
+      #primary-action-btn.mode-idle {
+        opacity: 0.68;
+      }
+
+      /* Overlay Screens (Intro / Hall Clear / Victory) */
+      .modal-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(12, 15, 20, 0.84);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: opacity 220ms ease;
+      }
+
+      .modal-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .modal-card {
+        width: 100%;
+        max-width: 620px;
+        background: rgba(17, 21, 28, 0.96);
+        border: 1px solid rgba(116, 127, 143, 0.35);
+        border-radius: 14px;
+        padding: 28px 28px 24px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+      }
+
+      .intro-kicker {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--amber);
+        margin-bottom: 10px;
+      }
+
+      .intro-title {
+        margin: 0;
+        font-size: clamp(26px, 4.2vw, 38px);
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        line-height: 1.06;
+        color: #f8fafc;
+      }
+
+      .intro-title .title-line {
+        display: block;
+      }
+
+      .intro-subtitle {
+        margin: 6px 0 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #94a3b8;
+      }
+
+      .author-credit {
+        margin-top: 8px;
+        min-height: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        color: rgba(148, 163, 184, 0.9);
+      }
+
+      .type-caret {
+        display: inline-block;
+        width: 6px;
+        height: 12px;
+        background: var(--amber);
+        opacity: 0.85;
+        animation: caretBlink 0.75s step-end infinite;
+      }
+
+      .type-caret.done {
+        opacity: 0;
+        animation: none;
+      }
+
+      @keyframes caretBlink {
+        0%, 100% { opacity: 0.85; }
+        50% { opacity: 0; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .type-caret {
+          animation: none;
+        }
+      }
+
+      .intro-stage-box {
+        margin-top: 20px;
+        padding: 16px 18px;
+        border-radius: 10px;
+        background: rgba(28, 34, 44, 0.78);
+        border: 1px solid rgba(116, 127, 143, 0.22);
+        min-height: 124px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .dispatch-speaker {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--amber);
+        margin-bottom: 6px;
+      }
+
+      .dispatch-quote {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.55;
+        color: #e2e8f0;
+      }
+
+      .teams-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .team-panel {
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(17, 21, 28, 0.7);
+        border: 1px solid rgba(116, 127, 143, 0.2);
+      }
+
+      .team-panel h4 {
+        margin: 0 0 4px;
+        font-size: 13px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .team-panel p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #cbd5e1;
+      }
+
+      .intro-progress-track {
+        margin-top: 16px;
+        width: 100%;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(116, 127, 143, 0.24);
+        overflow: hidden;
+      }
+
+      .intro-progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--amber), #4da6ff);
+        transition: width 120ms linear;
+      }
+
+      .modal-footer {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn-primary {
+        appearance: none;
+        border: 0;
+        border-radius: 8px;
+        padding: 12px 22px;
+        min-height: 44px;
+        background: var(--amber);
+        color: #11151c;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform 100ms ease, filter 140ms ease;
+      }
+
+      .btn-primary:hover {
+        filter: brightness(1.08);
+      }
+
+      .btn-primary:active {
+        transform: scale(0.97);
+      }
+
+      .btn-secondary {
+        appearance: none;
+        border: 1px solid rgba(116, 127, 143, 0.4);
+        border-radius: 8px;
+        padding: 10px 16px;
+        min-height: 44px;
+        background: transparent;
+        color: #cbd5e1;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .btn-secondary:hover {
+        border-color: #94a3b8;
+        color: #fff;
+      }
+
+      .summary-grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .summary-grid.cols-4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .summary-cell {
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(28, 34, 44, 0.72);
+        border: 1px solid rgba(116, 127, 143, 0.2);
+      }
+
+      .summary-cell .val {
+        font-family: var(--font-mono);
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--amber);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .summary-cell .lbl {
+        margin-top: 3px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+
+      @media (max-width: 960px) {
+        #top-hud {
+          padding: 6px 10px;
+          gap: 6px 10px;
+          top: 6px;
+          left: 8px;
+          right: 8px;
+          flex-wrap: wrap;
+        }
+        .brand-mark .title-full-stack {
+          font-size: 10px;
+        }
+        .hud-metrics {
+          gap: 8px;
+          font-size: 11px;
+          order: 3;
+          width: 100%;
+          justify-content: space-between;
+          padding-top: 4px;
+          border-top: 1px solid rgba(116, 127, 143, 0.18);
+        }
+        .metric-label {
+          display: none;
+        }
+        #desktop-legend {
+          display: none;
+        }
+        #tactical-banner {
+          top: 84px;
+          font-size: 11px;
+          max-width: 92vw;
+          white-space: normal;
+          text-align: center;
+          line-height: 1.3;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .teams-split {
+          grid-template-columns: 1fr;
+        }
+        .summary-grid,
+        .summary-grid.cols-4 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        #joystick-base {
+          width: 104px;
+          height: 104px;
+        }
+        #joystick-knob {
+          width: 44px;
+          height: 44px;
+        }
+        #primary-action-btn {
+          min-width: 132px;
+          min-height: 56px;
+          font-size: 13px;
+          padding: 10px 14px;
+        }
+        #context-hint {
+          max-width: 52vw;
+          white-space: normal;
+          text-align: right;
+          line-height: 1.25;
+          font-size: 10px;
+        }
+        .hud-brand {
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .brand-mark .title-full-stack {
+          font-size: 9px;
+          line-height: 1.02;
+        }
+        .hall-tab,
+        .lang-tab {
+          padding: 4px 6px;
+          font-size: 10px;
+        }
+        .mute-text,
+        .install-text {
+          display: none;
+        }
+        .icon-btn {
+          min-width: 38px;
+          height: 38px;
+          padding: 0 8px;
+        }
+        .hud-timer {
+          font-size: 11px;
+          min-width: 38px;
+        }
+      }
+
+      @media (pointer: fine) and (min-width: 961px) {
+        #touch-pad-wrap {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-root">
+      <canvas id="game-canvas" aria-label="Izometryczna hala fabryczna Zespołu Leona"></canvas>
+
+      <!-- Top HUD -->
+      <header id="top-hud">
+        <div class="hud-brand">
+          <button id="brand-home-btn" class="brand-mark" type="button" aria-label="Powrót do ekranu startowego" title="Powrót do ekranu startowego">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span class="title-full-stack">
+              <span>HIGH VOLTAGE:</span>
+              <span>LEON'S TEAM</span>
+            </span>
+          </button>
+          <nav class="hall-tabs" id="hall-tabs-nav" aria-label="Wybór hali">
+            <button class="hall-tab active" data-hall="0" type="button">HALA 01/03</button>
+            <button class="hall-tab" data-hall="1" type="button">HALA 02/03</button>
+            <button class="hall-tab" data-hall="2" type="button">HALA 03/03</button>
+          </nav>
+        </div>
+
+        <div class="hud-metrics">
+          <div class="metric-group" id="metric-boxes-group">
+            <span class="metric-label" id="lbl-boxes">SKRZYNKI</span>
+            <span class="led-stat"><span class="led-swatch swatch-green"></span><span id="stat-green">0</span></span>
+            <span class="led-stat"><span class="led-swatch swatch-orange"></span><span id="stat-orange">0</span></span>
+            <span class="led-stat"><span class="led-swatch swatch-red"></span><span id="stat-red">0</span></span>
+          </div>
+          <span class="sep" aria-hidden="true">|</span>
+          <div class="metric-group" id="metric-crew-group">
+            <span class="metric-label" id="lbl-crew">EKIPA</span>
+            <span class="worker-stat" id="stat-workers">WOLNI 3 · PRACA 0 · GOTOWI 0 · PRZEJĘCI 0</span>
+          </div>
+        </div>
+
+        <div class="hud-actions">
+          <div class="lang-tabs" role="group" aria-label="Language">
+            <button class="lang-tab active" data-lang="pl" type="button">PL</button>
+            <button class="lang-tab" data-lang="en" type="button">EN</button>
+            <button class="lang-tab" data-lang="de" type="button">DE</button>
+          </div>
+          <span class="hud-timer" id="stat-timer">02:30</span>
+          <button id="mute-btn" class="icon-btn" type="button" aria-label="Wyłącz dźwięki" title="Wyłącz dźwięki">
+            <span id="mute-icon">🔊</span>
+            <span class="mute-text" id="mute-text">Dźwięk</span>
+          </button>
+          <button id="install-btn" class="icon-btn" type="button" aria-label="Instaluj aplikację" title="Instaluj aplikację">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 20h14" />
+            </svg>
+            <span class="install-text" id="install-text">Instaluj</span>
+          </button>
+          <button id="restart-hall-btn" class="icon-btn" type="button" aria-label="Resetuj halę" title="Resetuj halę">↺</button>
+        </div>
+      </header>
+
+      <div id="tactical-banner" role="status" aria-live="polite"></div>
+
+      <!-- Bottom Controls -->
+      <div id="controls-layer">
+        <div id="touch-pad-wrap">
+          <div id="joystick-base" aria-label="Sterowanie ruchem Piotra">
+            <div class="joy-cross-h"></div>
+            <div class="joy-cross-v"></div>
+            <div id="joystick-knob"></div>
+          </div>
+        </div>
+
+        <div id="desktop-legend"></div>
+
+        <div id="action-wrap">
+          <div id="context-hint">Podejdź do skrzynki RED lub Janusza</div>
+          <button id="primary-action-btn" class="mode-idle" type="button">KONTAKT</button>
+        </div>
+      </div>
+
+      <!-- Intro Overlay -->
+      <div id="intro-overlay" class="modal-overlay">
+        <div class="modal-card">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <div class="intro-kicker">
+              <span class="brand-dot" aria-hidden="true"></span>
+              <span id="intro-kicker-text">HALA 01 / 03 · KONTROLA JAKOŚCI AKPiA</span>
+            </div>
+            <div class="lang-tabs" role="group" aria-label="Language">
+              <button class="lang-tab active" data-lang="pl" type="button">PL</button>
+              <button class="lang-tab" data-lang="en" type="button">EN</button>
+              <button class="lang-tab" data-lang="de" type="button">DE</button>
+            </div>
+          </div>
+          <h1 class="intro-title">
+            <span class="title-line">HIGH VOLTAGE:</span>
+            <span class="title-line">LEON'S TEAM</span>
+          </h1>
+          <p class="intro-subtitle" id="intro-subtitle">Zespół Leona — taktyczne odbiory szaf AKPiA i sterowniczych</p>
+          <div class="author-credit" id="author-credit" aria-live="off">
+            <span id="author-credit-text"></span><span class="type-caret" id="author-credit-caret" aria-hidden="true"></span>
+          </div>
+
+          <div class="intro-stage-box" id="intro-stage-box"></div>
+
+          <div class="intro-progress-track">
+            <div class="intro-progress-fill" id="intro-progress-fill"></div>
+          </div>
+
+          <div class="modal-footer">
+            <span id="intro-skip-hint" style="font-size:12px; color:#94a3b8;">Kliknij lub naciśnij Spację / Enter, aby pominąć</span>
+            <button id="intro-start-btn" class="btn-primary" type="button">START ZMIANY</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hall Transition Intro Overlay (Manual Click/Tap to Continue) -->
+      <div id="hall-transition-overlay" class="modal-overlay hidden">
+        <div class="modal-card">
+          <div class="intro-kicker">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span id="trans-kicker">HALA 01 / 03 ZALICZONA</span>
+          </div>
+          <h2 class="intro-title" id="trans-title" style="font-size: clamp(22px, 3.8vw, 34px);">PRZEJŚCIE DO HALI 02 / 03</h2>
+          <p class="intro-subtitle" id="trans-subtitle">Linia Automatyki</p>
+
+          <div class="summary-grid cols-4">
+            <div class="summary-cell">
+              <div class="val" id="trans-green" style="color: var(--led-green);">5/5</div>
+              <div class="lbl" id="trans-lbl-green">Zaliczone (GREEN)</div>
+            </div>
+            <div class="summary-cell">
+              <div class="val" id="trans-time">00:00</div>
+              <div class="lbl" id="trans-lbl-time">Czas hali</div>
+            </div>
+            <div class="summary-cell">
+              <div class="val" id="trans-voltage">0</div>
+              <div class="lbl" id="trans-lbl-voltage">Skoki napięcia</div>
+            </div>
+            <div class="summary-cell">
+              <div class="val" id="trans-captures">0</div>
+              <div class="lbl" id="trans-lbl-captures">Przejęcia</div>
+            </div>
+          </div>
+
+          <div class="intro-stage-box" style="margin-top: 14px; min-height: 84px;">
+            <div class="dispatch-speaker" id="trans-speaker">DYSPOZYCJA OD DYREKTORA LEONA</div>
+            <p class="dispatch-quote" id="trans-dispatch"></p>
+          </div>
+
+          <div class="modal-footer">
+            <span id="trans-tap-prompt" style="font-size:13px; font-weight:600; color: var(--amber);">Kliknij lub dotknij, aby wejść do kolejnej hali</span>
+            <button id="trans-skip-btn" class="btn-primary" type="button">WEJDŹ DO HALI →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hall Complete / Victory Overlay -->
+      <div id="summary-overlay" class="modal-overlay hidden">
+        <div class="modal-card">
+          <div class="intro-kicker">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span id="summary-kicker">WSZYSTKIE 3 HALE ZALICZONE</span>
+          </div>
+          <h2 class="intro-title" id="summary-title" style="font-size: clamp(22px, 3.6vw, 32px);">MISJA LEONA UKOŃCZONA!</h2>
+          <p class="intro-subtitle" id="summary-subtitle">Wszystkie skrzynki AKPiA i rozdzielnie w trzech halach zostały odebrane.</p>
+
+          <div class="summary-grid">
+            <div class="summary-cell">
+              <div class="val" id="sum-time">00:00</div>
+              <div class="lbl" id="sum-lbl-time">Czas odbioru hali</div>
+            </div>
+            <div class="summary-cell">
+              <div class="val" id="sum-voltage">0</div>
+              <div class="lbl" id="sum-lbl-voltage">Skoki napięcia</div>
+            </div>
+            <div class="summary-cell">
+              <div class="val" id="sum-captures">0</div>
+              <div class="lbl" id="sum-lbl-captures">Przejęcia Janusza</div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button id="summary-replay-btn" class="btn-secondary" type="button">Powtórz halę</button>
+            <button id="summary-next-btn" class="btn-primary" type="button">ZAGRAJ OD HALI 01 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PWA Install Guide Modal (Fallback for iOS Safari / Preview Iframes) -->
+      <div id="install-modal" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 460px;">
+          <div class="intro-kicker">
+            <span class="brand-dot" aria-hidden="true"></span>
+            <span id="inst-kicker">APLIKACJA MOBILNA · PWA</span>
+          </div>
+          <h2 class="intro-title" id="inst-title" style="font-size: 22px;">Dodaj do ekranu głównego</h2>
+          <p class="intro-subtitle" id="inst-subtitle" style="font-size: 13px;"></p>
+
+          <div class="intro-stage-box" style="margin-top: 14px; min-height: 0; gap: 10px;">
+            <p class="dispatch-quote" id="inst-ios" style="font-size: 13px;"></p>
+            <p class="dispatch-quote" id="inst-android" style="font-size: 13px; border-top: 1px solid rgba(116,127,143,0.22); padding-top: 10px;"></p>
+          </div>
+
+          <div class="modal-footer" style="justify-content: flex-end;">
+            <button id="inst-close-btn" class="btn-primary" type="button">Zamknij</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        /* =========================================================================
+           1. WEB AUDIO API PROCEDURAL SOUND ENGINE
+           ========================================================================= */
+        const AudioEngine = (() => {
+          let ctx = null;
+          let masterGain = null;
+          let musicGain = null;
+          let sfxGain = null;
+          let muted = false;
+          let unlocked = false;
+          let musicTimer = null;
+          let stepIndex = 0;
+          let musicActive = false;
+
+          function ensureContext() {
+            if (!ctx) {
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              if (!AudioCtx) return false;
+              ctx = new AudioCtx();
+              masterGain = ctx.createGain();
+              musicGain = ctx.createGain();
+              sfxGain = ctx.createGain();
+              musicGain.gain.value = 0.085;
+              sfxGain.gain.value = 0.34;
+              musicGain.connect(masterGain);
+              sfxGain.connect(masterGain);
+              masterGain.connect(ctx.destination);
+              masterGain.gain.value = muted ? 0 : 1;
+            }
+            if (ctx.state === 'suspended') {
+              ctx.resume().catch(() => {});
+            }
+            unlocked = true;
+            return true;
+          }
+
+          function unlock() {
+            if (ensureContext() && musicActive && !musicTimer) {
+              startMusicLoop();
+            }
+          }
+
+          function setMuted(nextMuted) {
+            muted = !!nextMuted;
+            if (masterGain && ctx) {
+              masterGain.gain.setTargetAtTime(muted ? 0 : 1, ctx.currentTime, 0.02);
+            }
+          }
+
+          function isMuted() {
+            return muted;
+          }
+
+          function setMusicActive(active) {
+            musicActive = active;
+            if (active && unlocked && !musicTimer) {
+              startMusicLoop();
+            } else if (!active && musicTimer) {
+              clearInterval(musicTimer);
+              musicTimer = null;
+            }
+          }
+
+          function startMusicLoop() {
+            if (musicTimer || !ctx) return;
+            // Subtle 96 BPM industrial ambient pulse (16th-note grid ~ 156ms)
+            const bassNotes = [55, 55, 65.41, 55, 73.42, 55, 61.74, 55]; // A1, C2, D2, B1
+            const padChords = [
+              [220, 329.63],
+              [261.63, 392.0],
+              [196.0, 293.66],
+              [220, 329.63],
+            ];
+            musicTimer = setInterval(() => {
+              if (!ctx || ctx.state !== 'running' || muted || !musicActive) return;
+              const now = ctx.currentTime;
+              const step = stepIndex % 16;
+
+              // Warm filtered bass pulse on 8ths
+              if (step % 2 === 0) {
+                const note = bassNotes[(step / 2) % bassNotes.length];
+                const osc = ctx.createOscillator();
+                const filt = ctx.createBiquadFilter();
+                const g = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(note, now);
+                filt.type = 'lowpass';
+                filt.frequency.setValueAtTime(step % 4 === 0 ? 320 : 210, now);
+                g.gain.setValueAtTime(0.001, now);
+                g.gain.linearRampToValueAtTime(step % 4 === 0 ? 0.34 : 0.18, now + 0.018);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+                osc.connect(filt);
+                filt.connect(g);
+                g.connect(musicGain);
+                osc.start(now);
+                osc.stop(now + 0.26);
+              }
+
+              // Soft ambient pad every 8 steps
+              if (step % 8 === 0) {
+                const chord = padChords[Math.floor(stepIndex / 8) % padChords.length];
+                chord.forEach((freq) => {
+                  const osc = ctx.createOscillator();
+                  const g = ctx.createGain();
+                  osc.type = 'sine';
+                  osc.frequency.setValueAtTime(freq, now);
+                  g.gain.setValueAtTime(0.001, now);
+                  g.gain.linearRampToValueAtTime(0.09, now + 0.25);
+                  g.gain.exponentialRampToValueAtTime(0.001, now + 1.15);
+                  osc.connect(g);
+                  g.connect(musicGain);
+                  osc.start(now);
+                  osc.stop(now + 1.2);
+                });
+              }
+
+              // Delicate mechanical clock tick on off-beats
+              if (step % 4 === 2) {
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1400, now);
+                osc.frequency.exponentialRampToValueAtTime(700, now + 0.025);
+                g.gain.setValueAtTime(0.05, now);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                osc.connect(g);
+                g.connect(musicGain);
+                osc.start(now);
+                osc.stop(now + 0.035);
+              }
+
+              stepIndex++;
+            }, 156);
+          }
+
+          function tone(freqStart, freqEnd, duration, type, volume, delay) {
+            if (!ensureContext() || muted) return;
+            const now = ctx.currentTime + (delay || 0);
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.setValueAtTime(freqStart, now);
+            if (freqEnd && freqEnd !== freqStart) {
+              osc.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), now + duration);
+            }
+            g.gain.setValueAtTime(0.001, now);
+            g.gain.linearRampToValueAtTime(volume || 0.35, now + 0.012);
+            g.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            osc.connect(g);
+            g.connect(sfxGain);
+            osc.start(now);
+            osc.stop(now + duration + 0.02);
+          }
+
+          return {
+            unlock,
+            setMuted,
+            isMuted,
+            setMusicActive,
+            playScanStart() {
+              tone(740, 980, 0.07, 'sine', 0.32, 0);
+              tone(1180, 1480, 0.09, 'triangle', 0.28, 0.065);
+            },
+            playReadySignal() {
+              tone(659.25, 659.25, 0.12, 'triangle', 0.3, 0);
+              tone(880.0, 880.0, 0.18, 'triangle', 0.34, 0.09);
+            },
+            playOrangeWarning() {
+              tone(466.16, 415.3, 0.13, 'sawtooth', 0.18, 0);
+              tone(466.16, 392.0, 0.15, 'sawtooth', 0.18, 0.15);
+            },
+            playFinishGreen() {
+              tone(523.25, 523.25, 0.11, 'triangle', 0.32, 0);
+              tone(659.25, 659.25, 0.11, 'triangle', 0.32, 0.075);
+              tone(783.99, 783.99, 0.22, 'triangle', 0.36, 0.15);
+            },
+            playBeigeInterference() {
+              tone(190, 110, 0.18, 'sawtooth', 0.28, 0);
+              tone(140, 82, 0.22, 'square', 0.18, 0.08);
+            },
+            playWorkerCaptured() {
+              tone(520, 290, 0.16, 'sawtooth', 0.24, 0);
+              tone(330, 180, 0.24, 'triangle', 0.26, 0.12);
+            },
+            playHighVoltage() {
+              if (!ensureContext() || muted) return;
+              const now = ctx.currentTime;
+              // Electric noise crackle
+              const bufferSize = Math.floor(ctx.sampleRate * 0.36);
+              const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+              const data = buffer.getChannelData(0);
+              for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * (i % 90 < 45 ? 1 : 0.35);
+              }
+              const noise = ctx.createBufferSource();
+              noise.buffer = buffer;
+              const band = ctx.createBiquadFilter();
+              band.type = 'bandpass';
+              band.frequency.setValueAtTime(2200, now);
+              band.Q.value = 1.6;
+              const ng = ctx.createGain();
+              ng.gain.setValueAtTime(0.45, now);
+              ng.gain.exponentialRampToValueAtTime(0.01, now + 0.36);
+              noise.connect(band);
+              band.connect(ng);
+              ng.connect(sfxGain);
+              noise.start(now);
+
+              // Sharp electric zap sweep + stutter
+              tone(1600, 190, 0.28, 'sawtooth', 0.34, 0);
+              tone(980, 240, 0.22, 'square', 0.22, 0.05);
+            },
+            playHallComplete() {
+              const notes = [523.25, 659.25, 783.99, 1046.5];
+              notes.forEach((n, i) => tone(n, n, 0.22, 'triangle', 0.3, i * 0.085));
+            },
+            playHallTransition() {
+              tone(329.63, 440, 0.14, 'triangle', 0.24, 0.05);
+              tone(440, 659.25, 0.22, 'sine', 0.26, 0.18);
+              tone(659.25, 880, 0.28, 'triangle', 0.22, 0.34);
+            },
+            playVictoryAll() {
+              const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+              notes.forEach((n, i) => tone(n, n, 0.32, 'triangle', 0.34, i * 0.1));
+            },
+            playShiftFailed() {
+              tone(330, 220, 0.22, 'sawtooth', 0.24, 0);
+              tone(220, 146.83, 0.34, 'sawtooth', 0.26, 0.18);
+            },
+          };
+        })();
+
+        /* =========================================================================
+           1B. MULTI-LANGUAGE I18N (PL DEFAULT, EN, DE)
+           ========================================================================= */
+        const I18N = {
+          pl: {
+            htmlLang: 'pl',
+            pageTitle: "HIGH VOLTAGE: LEON'S TEAM — Zespół Leona",
+            metaDesc: "HIGH VOLTAGE: LEON'S TEAM (Zespół Leona) — Izometryczna taktyczna symulacja fabryczna 2.5D.",
+            canvasAria: 'Izometryczna hala fabryczna Zespołu Leona',
+            hallTabsAria: 'Wybór hali',
+            hallShort: ['HALA 01/03', 'HALA 02/03', 'HALA 03/03'],
+            hallCodes: ['HALA 01 / 03', 'HALA 02 / 03', 'HALA 03 / 03'],
+            hallNames: ['Montaż Wstępny', 'Linia Automatyki', 'Rozdzielnia Główna WN'],
+            hallDispatches: [
+              '„Piotr — trzymaj ludzi i zamykaj na zielono. Janusz znowu kręci się po montażu.”',
+              '„Świetnie zamknięty montaż! Na Linii Automatyki PLC-01..06 roboty nie czekają, a Janusz ma już dwóch ludzi — pilnuj odbiorów!”',
+              '„Ostatnia zmiana — Rozdzielnia Główna WN! Siedem szaf wysokiego napięcia i pełna załoga Janusza na hali. Zamykaj na zielono!”',
+            ],
+            entryLabel: 'WEJŚCIE',
+            exitLabel: 'WYJŚCIE',
+            lblBoxes: 'SKRZYNKI',
+            lblCrew: 'EKIPA',
+            crewFull: 'WOLNI {free} · PRACA {work} · GOTOWI {ready} · PRZEJĘCI {cap}',
+            crewShort: 'WOLNI {free} · PRACA {work} · GOT {ready} · PRZ {cap}',
+            soundText: 'Dźwięk',
+            muteOffTitle: 'Wyłącz dźwięki',
+            muteOnTitle: 'Włącz dźwięki',
+            installText: 'Instaluj',
+            installTitle: 'Instaluj aplikację',
+            brandHomeTitle: 'Powrót do ekranu startowego',
+            authorCredit: 'Projekt: Artur Wierzbicki',
+            restartTitle: 'Resetuj halę',
+            joystickAria: 'Sterowanie ruchem Piotra',
+            desktopLegend: '<span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> Ruch</span><span><kbd>Spacja</kbd> / <kbd>E</kbd> Akcja</span><span><kbd>Klik</kbd> Idź / Skanuj</span>',
+            btnKontakt: 'KONTAKT',
+            btnFinish: 'FINISH · ODBIÓR',
+            btnStart: 'START · SKANUJ',
+            btnVoltage: 'SKOK NAPIĘCIA ⚡',
+            hintPendingAssign: 'Przydziel odzyskanego pracownika do skrzynki RED',
+            hintApproach: 'Podejdź do skrzynki AKPiA lub Janusza',
+            hintFinish: 'Zamknij {id} na ZIELONO',
+            hintStart: 'Przydziel pracownika do {id}',
+            hintVoltageRecover: 'Zamroź Janusza (5s) i odbij 1 pracownika!',
+            hintVoltageStun: 'Zamroź Janusza na 5 sekund',
+            hintNeedAssign: 'Najpierw przydziel odzyskanego pracownika!',
+            hintNoWorker: 'Brak wolnych pracowników niebieskich',
+            hintExiting: 'Wszystkie GREEN — ekipa idzie do WYJŚCIA!',
+            introKicker: 'HALA 01 / 03 · KONTROLA JAKOŚCI AKPiA',
+            introSubtitle: 'Zespół Leona — taktyczne odbiory szaf AKPiA i sterowniczych',
+            introSkipHint: 'Kliknij lub naciśnij Spację / Enter, aby pominąć',
+            introStartBtn: 'START ZMIANY',
+            introBeat0Speaker: 'ZMIANA PORANNA · ODBIORY AKPiA (02:30 / HALA)',
+            introBeat0Quote: 'Wejdź z <strong>Piotrem</strong> i 3-osobową brygadą przez <strong>WEJŚCIE</strong>. Skanuj czerwone skrzynki, dopilnuj 100%, zamykaj na zielono i wyjdź przez <strong>WYJŚCIE</strong> w czasie 2:30.',
+            introBeat1Speaker: 'KOMUNIKAT OD DYREKTORA LEONA',
+            introBeat1Quote: '„Trzy hale, skrzynki AKPiA i sterownicze same się nie odbiorą. Piotr — trzymaj ludzi i zamykaj na zielono. Janusz znowu kręci się po montażu.”',
+            introBeat2BlueTitle: 'ZESPÓŁ PIOTRA (TY)',
+            introBeat2BlueDesc: 'Piotr + 3 niebieskich. <strong>START</strong> przy RED → czekaj na 100% → <strong>FINISH</strong> na zielono. Skok napięcia przy Januszu zamraża go na 5s i odbija 1 pracownika.',
+            introBeat2BeigeTitle: 'EKIPA JANUSZA (AI)',
+            introBeat2BeigeDesc: 'Janusz + 1–2 beżowych. Blokują skrzynki na 5s (reset do RED), nie blokują ostatniej skrzynki i przejmują dopiero po 10s przy 100%.',
+            bannerIntroStart: 'HALA 01 / 03 — Podejdź do czerwonej skrzynki AKPiA i kliknij START!',
+            bannerNoFree: 'Brak wolnych pracowników! Odbierz 100% lub odzyskaj od Janusza.',
+            bannerRecoveredAssigned: 'Odzyskany pracownik przydzielony! Możesz znów odzyskać kolejnego.',
+            bannerNeedAssignFirst: 'Najpierw przydziel odzyskanego pracownika do skrzynki!',
+            bannerNeedAssignNew: 'Najpierw przydziel odzyskanego pracownika do nowej skrzynki!',
+            bannerAllBusy: 'Wszyscy niebiescy pracownicy zajęci lub przejęci!',
+            bannerVoltageRecover: 'SKOK NAPIĘCIA! Janusz zamrożony na 5s — przydziel odzyskanego pracownika!',
+            bannerVoltageStun: 'Janusz porażony na 5 sekund!',
+            bannerBeigeLocked: 'Ekipa Janusza zablokowała {id} na 5s!',
+            bannerCapturedHint: '{reason} Podejdź do Janusza (SKOK NAPIĘCIA), aby go odbić!',
+            bannerHallEnter: '{code} · {name} — Odbierz wszystkie skrzynki w 02:30!',
+            bannerExiting: 'Wszystkie skrzynki GREEN! Ekipa kieruje się do WYJŚCIA...',
+            bannerInactivityWarn: 'Brak aktywności — koniec pracy za {sec}s!',
+            bannerRestart: 'Restart: {code}',
+            reasonWaitedTooLong: 'PRACOWNIK CZEKAŁ ZBYT DŁUGO!',
+            reasonBeigeCaptured: 'BEŻOWY PRZEJĄŁ PRACOWNIKA!',
+            ftScanStart: 'SKAN START',
+            ftFinishOk: 'ODBIÓR OK!',
+            ftVoltageRecover: '⚡ SKOK NAPIĘCIA! +1 NIEBIESKI',
+            ftVoltageStun: '⚡ SKOK NAPIĘCIA! (5s)',
+            ftUnlocked: 'ODBLOKOWANA',
+            ftTimeWarning: 'UWAGA: CZAS!',
+            ftReady100: '100% GOTOWE DO ODBIORU!',
+            ftLocked5s: 'BLOKADA 5s · RESET RED',
+            ftCaptured: 'PRZEJĘTY!',
+            cpReadyTimer: '100% · {sec}s',
+            cpFinishNow: 'ODBIERZ TERAZ!',
+            charReady: '✔ GOTOWE!',
+            charAssignWorker: 'PRZYDZIEL PRACOWNIKA!',
+            transKicker: '{code} ZALICZONA · ZMIANA SEKTORA',
+            transTitle: 'PRZEJŚCIE DO {code}',
+            transHallPrefix: 'HALI ',
+            transHallSearch: 'HALA ',
+            transLblGreen: 'Zaliczone (GREEN)',
+            transLblTime: 'Czas hali',
+            transLblVoltage: 'Skoki napięcia',
+            transLblCaptures: 'Przejęcia',
+            transSpeaker: 'DYSPOZYCJA OD DYREKTORA LEONA',
+            transTapPrompt: 'Kliknij lub dotknij, aby wejść do kolejnej hali',
+            transBtn: 'WEJDŹ DO {code} →',
+            sumVictoryKicker: 'WSZYSTKIE 3 HALE ZALICZONE',
+            sumVictoryTitle: 'MISJA LEONA UKOŃCZONA!',
+            sumVictorySubtitle: 'Wszystkie skrzynki AKPiA i rozdzielnie w trzech halach zostały odebrane.',
+            sumHallKicker: '{code} ZAKOŃCZONA',
+            sumHallTitle: '{code} — ZIELONE ŚWIATŁO',
+            sumHallSubtitle: 'Przechodzisz do kolejnej hali: {code} ({name}).',
+            endTimeoutKicker: '{code} · KONIEC CZASU',
+            endTimeoutTitle: 'CZAS ZMIANY MINĄŁ (02:30)',
+            endTimeoutSubtitle: 'Nie udało się zamknąć wszystkich odbiorów i wyjść przez WYJŚCIE przed upływem 2 minut 30 sekund.',
+            endInactivityKicker: '{code} · BRAK AKTYWNOŚCI',
+            endInactivityTitle: 'KONIEC PRACY',
+            endInactivitySubtitle: 'Zbyt długi brak aktywności na hali — zmiana została przerwana.',
+            sumLblTime: 'Czas na hali',
+            sumLblVoltage: 'Skoki napięcia',
+            sumLblCaptures: 'Przejęcia Janusza',
+            sumReplayBtn: 'Powtórz halę',
+            sumNextVictoryBtn: 'ZAGRAJ OD HALI 01 →',
+            sumNextHallBtn: 'WEJDŹ DO {code} →',
+            instKicker: 'APLIKACJA MOBILNA · PWA',
+            instTitle: 'Dodaj do ekranu głównego',
+            instSubtitle: 'Zainstaluj grę HIGH VOLTAGE: LEON\'S TEAM na telefonie lub pulpicie, aby uruchamiać ją na pełnym ekranie.',
+            instIos: '<strong>iPhone / iPad (Safari):</strong> Dotknij ikony <strong>Udostępnij</strong> na pasku Safari, a następnie wybierz <strong>„Dodaj do ekranu początkowego”</strong>.',
+            instAndroid: '<strong>Android (Chrome) / Desktop:</strong> Otwórz menu przeglądarki (⋮) i wybierz <strong>„Zainstaluj aplikację”</strong> lub <strong>„Dodaj do ekranu głównego”</strong>.',
+            instClose: 'Zamknij',
+          },
+          en: {
+            htmlLang: 'en',
+            pageTitle: "HIGH VOLTAGE: LEON'S TEAM — Leon's Crew",
+            metaDesc: "HIGH VOLTAGE: LEON'S TEAM — Isometric 2.5D tactical factory inspection game.",
+            canvasAria: "Isometric factory hall of Leon's Team",
+            hallTabsAria: 'Select hall',
+            hallShort: ['HALL 01/03', 'HALL 02/03', 'HALL 03/03'],
+            hallCodes: ['HALL 01 / 03', 'HALL 02 / 03', 'HALL 03 / 03'],
+            hallNames: ['Pre-Assembly', 'Automation Line', 'Main HV Switchgear'],
+            hallDispatches: [
+              '“Piotr — keep your crew tight and close stations GREEN. Janusz is prowling the assembly floor again.”',
+              '“Assembly closed cleanly! On Automation Line PLC-01..06 the robots won’t wait, and Janusz now has two workers — watch your sign-offs!”',
+              '“Final shift — Main HV Switchgear! Seven high-voltage cabinets and Janusz’s full crew on the floor. Lock them all GREEN!”',
+            ],
+            entryLabel: 'ENTRY',
+            exitLabel: 'EXIT',
+            lblBoxes: 'BOXES',
+            lblCrew: 'CREW',
+            crewFull: 'FREE {free} · WORK {work} · READY {ready} · TAKEN {cap}',
+            crewShort: 'FREE {free} · WORK {work} · RDY {ready} · TKN {cap}',
+            soundText: 'Sound',
+            muteOffTitle: 'Mute audio',
+            muteOnTitle: 'Unmute audio',
+            installText: 'Install',
+            installTitle: 'Install app',
+            brandHomeTitle: 'Return to start screen',
+            authorCredit: 'Project by: Artur Wierzbicki',
+            restartTitle: 'Restart hall',
+            joystickAria: "Control Piotr's movement",
+            desktopLegend: '<span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> Move</span><span><kbd>Space</kbd> / <kbd>E</kbd> Action</span><span><kbd>Click</kbd> Move / Scan</span>',
+            btnKontakt: 'CONTACT',
+            btnFinish: 'FINISH · SIGN-OFF',
+            btnStart: 'START · SCAN',
+            btnVoltage: 'HIGH VOLTAGE ⚡',
+            hintPendingAssign: 'Assign the recovered worker to a RED cabinet',
+            hintApproach: 'Approach an AKPiA cabinet or Janusz',
+            hintFinish: 'Close {id} to GREEN',
+            hintStart: 'Assign a worker to {id}',
+            hintVoltageRecover: 'Freeze Janusz (5s) and recover 1 worker!',
+            hintVoltageStun: 'Freeze Janusz for 5 seconds',
+            hintNeedAssign: 'Assign the recovered worker first!',
+            hintNoWorker: 'No free blue workers available',
+            hintExiting: 'All GREEN — crew heading to EXIT!',
+            introKicker: 'HALL 01 / 03 · AKPiA QUALITY CONTROL',
+            introSubtitle: "Leon's Crew — tactical AKPiA & switchgear cabinet inspections",
+            introSkipHint: 'Click or press Space / Enter to skip',
+            introStartBtn: 'START SHIFT',
+            introBeat0Speaker: 'MORNING SHIFT · AKPiA INSPECTIONS (02:30 / HALL)',
+            introBeat0Quote: 'Enter with <strong>Piotr</strong> and his 3-worker crew through <strong>ENTRY</strong>. Scan red cabinets, reach 100%, sign them off GREEN, and leave via <strong>EXIT</strong> within 2:30.',
+            introBeat1Speaker: 'DISPATCH FROM DIRECTOR LEON',
+            introBeat1Quote: '“Three halls, AKPiA panels, and switchgear won’t sign off themselves. Piotr — keep your crew tight and close GREEN. Janusz is prowling the floor again.”',
+            introBeat2BlueTitle: "PIOTR'S TEAM (YOU)",
+            introBeat2BlueDesc: 'Piotr + 3 blue workers. <strong>START</strong> on RED → wait for 100% → <strong>FINISH</strong> to GREEN. High Voltage near Janusz freezes him for 5s and recovers 1 worker.',
+            introBeat2BeigeTitle: "JANUSZ'S CREW (AI)",
+            introBeat2BeigeDesc: 'Janusz + 1–2 beige workers. They lock cabinets for 5s (reset to RED), never block the final box, and only capture after 10s waiting at 100%.',
+            bannerIntroStart: 'HALL 01 / 03 — Approach a red AKPiA cabinet and click START!',
+            bannerNoFree: 'No free workers! Sign off a 100% box or recover one from Janusz.',
+            bannerRecoveredAssigned: 'Recovered worker assigned! You can rescue another one now.',
+            bannerNeedAssignFirst: 'Assign the recovered worker to a cabinet first!',
+            bannerNeedAssignNew: 'Assign the recovered worker to a new cabinet first!',
+            bannerAllBusy: 'All blue workers are busy or captured!',
+            bannerVoltageRecover: 'HIGH VOLTAGE! Janusz frozen for 5s — assign your recovered worker!',
+            bannerVoltageStun: 'Janusz stunned for 5 seconds!',
+            bannerBeigeLocked: "Janusz's crew locked {id} for 5s!",
+            bannerCapturedHint: '{reason} Approach Janusz (HIGH VOLTAGE) to rescue them!',
+            bannerHallEnter: '{code} · {name} — Sign off all cabinets within 02:30!',
+            bannerExiting: 'All cabinets GREEN! Crew heading automatically to EXIT...',
+            bannerInactivityWarn: 'No activity — shift ends in {sec}s!',
+            bannerRestart: 'Restarted: {code}',
+            reasonWaitedTooLong: 'WORKER WAITED TOO LONG!',
+            reasonBeigeCaptured: 'BEIGE WORKER CAPTURED YOUR CREW!',
+            ftScanStart: 'SCAN START',
+            ftFinishOk: 'SIGN-OFF OK!',
+            ftVoltageRecover: '⚡ HIGH VOLTAGE! +1 BLUE',
+            ftVoltageStun: '⚡ HIGH VOLTAGE! (5s)',
+            ftUnlocked: 'UNLOCKED',
+            ftTimeWarning: 'TIME WARNING!',
+            ftReady100: '100% READY FOR SIGN-OFF!',
+            ftLocked5s: 'LOCKED 5s · RESET RED',
+            ftCaptured: 'CAPTURED!',
+            cpReadyTimer: '100% · {sec}s',
+            cpFinishNow: 'SIGN OFF NOW!',
+            charReady: '✔ READY!',
+            charAssignWorker: 'ASSIGN WORKER!',
+            transKicker: '{code} CLEARED · SECTOR CHANGE',
+            transTitle: 'ENTERING {code}',
+            transHallPrefix: '',
+            transHallSearch: 'HALL ',
+            transLblGreen: 'Cleared (GREEN)',
+            transLblTime: 'Hall time',
+            transLblVoltage: 'Voltage surges',
+            transLblCaptures: 'Captures',
+            transSpeaker: 'DISPATCH FROM DIRECTOR LEON',
+            transTapPrompt: 'Click or tap to enter the next hall',
+            transBtn: 'ENTER {code} →',
+            sumVictoryKicker: 'ALL 3 HALLS CLEARED',
+            sumVictoryTitle: "LEON'S MISSION COMPLETE!",
+            sumVictorySubtitle: 'All AKPiA cabinets and switchgear across all three halls have been signed off.',
+            sumHallKicker: '{code} COMPLETED',
+            sumHallTitle: '{code} — GREEN LIGHT',
+            sumHallSubtitle: 'Proceeding to the next hall: {code} ({name}).',
+            endTimeoutKicker: '{code} · TIME EXPIRED',
+            endTimeoutTitle: 'SHIFT TIME EXPIRED (02:30)',
+            endTimeoutSubtitle: 'Could not complete all stations and reach EXIT before the 2:30 hall timer ran out.',
+            endInactivityKicker: '{code} · INACTIVITY',
+            endInactivityTitle: 'WORK ENDED',
+            endInactivitySubtitle: 'No activity or inspection progress on the floor — shift ended due to inactivity.',
+            sumLblTime: 'Time spent',
+            sumLblVoltage: 'Voltage surges',
+            sumLblCaptures: "Janusz's captures",
+            sumReplayBtn: 'Replay hall',
+            sumNextVictoryBtn: 'PLAY FROM HALL 01 →',
+            sumNextHallBtn: 'ENTER {code} →',
+            instKicker: 'MOBILE APP · PWA',
+            instTitle: 'Add to Home Screen',
+            instSubtitle: "Install HIGH VOLTAGE: LEON'S TEAM on your phone or desktop for fullscreen quick launch.",
+            instIos: '<strong>iPhone / iPad (Safari):</strong> Tap the <strong>Share</strong> icon in Safari, then choose <strong>“Add to Home Screen”</strong>.',
+            instAndroid: '<strong>Android (Chrome) / Desktop:</strong> Open the browser menu (⋮) and choose <strong>“Install app”</strong> or <strong>“Add to Home screen”</strong>.',
+            instClose: 'Close',
+          },
+          de: {
+            htmlLang: 'de',
+            pageTitle: "HIGH VOLTAGE: LEON'S TEAM — Leons Team",
+            metaDesc: "HIGH VOLTAGE: LEON'S TEAM (Leons Team) — Isometrische 2.5D-Fabriktaktiksimulation.",
+            canvasAria: 'Isometrische Fabrikhalle von Leons Team',
+            hallTabsAria: 'Halle wählen',
+            hallShort: ['HALLE 01/03', 'HALLE 02/03', 'HALLE 03/03'],
+            hallCodes: ['HALLE 01 / 03', 'HALLE 02 / 03', 'HALLE 03 / 03'],
+            hallNames: ['Vormontage', 'Automationslinie', 'Hauptschaltanlage HS'],
+            hallDispatches: [
+              '„Piotr — halte die Crew zusammen und schließe auf GRÜN ab. Janusz schleicht wieder durch die Montage.”',
+              '„Vormontage sauber abgeschlossen! An der Automationslinie PLC-01..06 warten die Roboter nicht, und Janusz hat schon zwei Leute — achte auf die Abnahmen!”',
+              '„Letzte Schicht — Hauptschaltanlage HS! Sieben Hochspannungsschränke und Janusz’ komplette Truppe in der Halle. Alles auf GRÜN abschließen!”',
+            ],
+            entryLabel: 'EINGANG',
+            exitLabel: 'AUSGANG',
+            lblBoxes: 'SCHRÄNKE',
+            lblCrew: 'TEAM',
+            crewFull: 'FREI {free} · ARBEIT {work} · BEREIT {ready} · ÜBERN. {cap}',
+            crewShort: 'FREI {free} · ARB {work} · BER {ready} · ÜBR {cap}',
+            soundText: 'Ton',
+            muteOffTitle: 'Ton ausschalten',
+            muteOnTitle: 'Ton einschalten',
+            installText: 'Installieren',
+            installTitle: 'App installieren',
+            brandHomeTitle: 'Zurück zum Startbildschirm',
+            authorCredit: 'Projekt von: Artur Wierzbicki',
+            restartTitle: 'Halle neu starten',
+            joystickAria: 'Bewegungssteuerung für Piotr',
+            desktopLegend: '<span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd> Bewegen</span><span><kbd>Leertaste</kbd> / <kbd>E</kbd> Aktion</span><span><kbd>Klick</kbd> Gehen / Scannen</span>',
+            btnKontakt: 'KONTAKT',
+            btnFinish: 'FINISH · ABNAHME',
+            btnStart: 'START · SCANNEN',
+            btnVoltage: 'STROMSTOSS ⚡',
+            hintPendingAssign: 'Befreiten Mitarbeiter einem ROTEN Schrank zuweisen',
+            hintApproach: 'Nähere dich einem AKPiA-Schrank oder Janusz',
+            hintFinish: '{id} auf GRÜN abschließen',
+            hintStart: 'Mitarbeiter an {id} zuweisen',
+            hintVoltageRecover: 'Janusz (5s) einfrieren & 1 Mitarbeiter befreien!',
+            hintVoltageStun: 'Janusz für 5 Sekunden einfrieren',
+            hintNeedAssign: 'Zuerst den befreiten Mitarbeiter zuweisen!',
+            hintNoWorker: 'Keine freien blauen Mitarbeiter verfügbar',
+            hintExiting: 'Alles GRÜN — Team geht zum AUSGANG!',
+            introKicker: 'HALLE 01 / 03 · AKPiA-QUALITÄTSPRÜFUNG',
+            introSubtitle: 'Leons Team — taktische Abnahme von AKPiA- und Schaltschränken',
+            introSkipHint: 'Klicken oder Leertaste / Enter drücken zum Überspringen',
+            introStartBtn: 'SCHICHT STARTEN',
+            introBeat0Speaker: 'FRÜHSCHICHT · AKPiA-ABNAHMEN (02:30 / HALLE)',
+            introBeat0Quote: 'Betritt die Halle mit <strong>Piotr</strong> und 3 Kräften durch den <strong>EINGANG</strong>. Scanne rote Schränke, erreiche 100%, schließe auf GRÜN ab und verlasse sie durch den <strong>AUSGANG</strong> in 2:30.',
+            introBeat1Speaker: 'FUNKSPRUCH VON DIREKTOR LEON',
+            introBeat1Quote: '„Drei Hallen, AKPiA-Schränke und Schaltanlagen nehmen sich nicht von selbst ab. Piotr — halte die Leute zusammen und mach alles GRÜN. Janusz streift schon wieder herum.”',
+            introBeat2BlueTitle: 'PIOTRS TEAM (DU)',
+            introBeat2BlueDesc: 'Piotr + 3 blaue Kräfte. <strong>START</strong> bei ROT → auf 100% warten → <strong>FINISH</strong> auf GRÜN. Stromstoß bei Janusz friert ihn 5s ein und holt 1 Kraft zurück.',
+            introBeat2BeigeTitle: 'JANUSZ’ TRUPPE (KI)',
+            introBeat2BeigeDesc: 'Janusz + 1–2 beige Kräfte. Sie sperren Schränke für 5s (Reset auf ROT), blockieren nie den letzten Schrank und übernehmen erst nach 10s bei 100%.',
+            bannerIntroStart: 'HALLE 01 / 03 — Geh zu einem roten AKPiA-Schrank und klicke START!',
+            bannerNoFree: 'Keine freien Kräfte! Schließe 100% ab oder befreie jemanden von Janusz.',
+            bannerRecoveredAssigned: 'Befreiter Mitarbeiter zugewiesen! Du kannst wieder jemanden retten.',
+            bannerNeedAssignFirst: 'Weise zuerst den befreiten Mitarbeiter einem Schrank zu!',
+            bannerNeedAssignNew: 'Weise zuerst den befreiten Mitarbeiter einem neuen Schrank zu!',
+            bannerAllBusy: 'Alle blauen Mitarbeiter sind beschäftigt oder übernommen!',
+            bannerVoltageRecover: 'STROMSTOSS! Janusz 5s eingefroren — weise den befreiten Mitarbeiter zu!',
+            bannerVoltageStun: 'Janusz für 5 Sekunden betäubt!',
+            bannerBeigeLocked: 'Janusz’ Team hat {id} für 5s gesperrt!',
+            bannerCapturedHint: '{reason} Geh zu Janusz (STROMSTOSS), um ihn zurückzuholen!',
+            bannerHallEnter: '{code} · {name} — Alle Schränke in 02:30 abnehmen!',
+            bannerExiting: 'Alle Schränke GRÜN! Team geht automatisch zum AUSGANG...',
+            bannerInactivityWarn: 'Keine Aktivität — Arbeitsende in {sec}s!',
+            bannerRestart: 'Neustart: {code}',
+            reasonWaitedTooLong: 'MITARBEITER HAT ZU LANGE GEWARTET!',
+            reasonBeigeCaptured: 'BEIGER HAT MITARBEITER ÜBERNOMMEN!',
+            ftScanStart: 'SCAN START',
+            ftFinishOk: 'ABNAHME OK!',
+            ftVoltageRecover: '⚡ STROMSTOSS! +1 BLAU',
+            ftVoltageStun: '⚡ STROMSTOSS! (5s)',
+            ftUnlocked: 'ENTSPERRT',
+            ftTimeWarning: 'ZEITWARNUNG!',
+            ftReady100: '100% ABNAHMEBEREIT!',
+            ftLocked5s: 'SPERRE 5s · RESET ROT',
+            ftCaptured: 'ÜBERNOMMEN!',
+            cpReadyTimer: '100% · {sec}s',
+            cpFinishNow: 'JETZT ABNEHMEN!',
+            charReady: '✔ BEREIT!',
+            charAssignWorker: 'MITARBEITER ZUWEISEN!',
+            transKicker: '{code} GESCHAFFT · SEKTORWECHSEL',
+            transTitle: 'WECHSEL IN {code}',
+            transHallPrefix: '',
+            transHallSearch: 'HALLE ',
+            transLblGreen: 'Abgenommen (GRÜN)',
+            transLblTime: 'Hallenzeit',
+            transLblVoltage: 'Stromstöße',
+            transLblCaptures: 'Übernahmen',
+            transSpeaker: 'ANWEISUNG VON DIREKTOR LEON',
+            transTapPrompt: 'Klicken oder tippen, um die nächste Halle zu betreten',
+            transBtn: 'IN {code} GEHEN →',
+            sumVictoryKicker: 'ALLE 3 HALLEN ABGESCHLOSSEN',
+            sumVictoryTitle: 'LEONS MISSION ERFÜLLT!',
+            sumVictorySubtitle: 'Alle AKPiA-Schränke und Schaltanlagen in allen drei Hallen wurden abgenommen.',
+            sumHallKicker: '{code} ABGESCHLOSSEN',
+            sumHallTitle: '{code} — GRÜNES LICHT',
+            sumHallSubtitle: 'Weiter zur nächsten Halle: {code} ({name}).',
+            endTimeoutKicker: '{code} · ZEIT ABGELAUFEN',
+            endTimeoutTitle: 'SCHICHTZEIT ABGELAUFEN (02:30)',
+            endTimeoutSubtitle: 'Nicht alle Schränke wurden rechtzeitig abgenommen und der AUSGANG in 2:30 erreicht.',
+            endInactivityKicker: '{code} · KEINE AKTIVITÄT',
+            endInactivityTitle: 'ARBEITSENDE',
+            endInactivitySubtitle: 'Zu lange keine Aktivität in der Halle — Schicht wegen Inaktivität beendet.',
+            sumLblTime: 'Hallenzeit',
+            sumLblVoltage: 'Stromstöße',
+            sumLblCaptures: 'Übernahmen durch Janusz',
+            sumReplayBtn: 'Halle wiederholen',
+            sumNextVictoryBtn: 'AB HALLE 01 SPIELEN →',
+            sumNextHallBtn: 'IN {code} GEHEN →',
+            instKicker: 'MOBILE APP · PWA',
+            instTitle: 'Zum Startbildschirm hinzufügen',
+            instSubtitle: 'Installiere HIGH VOLTAGE: LEON\'S TEAM auf Smartphone oder Desktop für den Vollbild-Start.',
+            instIos: '<strong>iPhone / iPad (Safari):</strong> Tippe in Safari auf <strong>Teilen</strong> und wähle <strong>„Zum Home-Bildschirm“</strong>.',
+            instAndroid: '<strong>Android (Chrome) / Desktop:</strong> Öffne das Browser-Menü (⋮) und wähle <strong>„App installieren“</strong> oder <strong>„Zum Startbildschirm hinzufügen“</strong>.',
+            instClose: 'Schließen',
+          },
+        };
+
+        let currentLang = 'pl';
+        try {
+          const savedLang = localStorage.getItem('hv_leons_team_lang');
+          if (savedLang && I18N[savedLang]) currentLang = savedLang;
+        } catch (_) {}
+
+        function t(key, vars) {
+          const dict = I18N[currentLang] || I18N.pl;
+          let str = dict[key] !== undefined ? dict[key] : (I18N.pl[key] || key);
+          if (vars) {
+            for (const [k, v] of Object.entries(vars)) {
+              str = str.replaceAll(`{${k}}`, String(v));
+            }
+          }
+          return str;
+        }
+
+        /* =========================================================================
+           1C. PWA ICON, MANIFEST & INSTALL PROMPT HANDLER
+           ========================================================================= */
+        let deferredInstallPrompt = null;
+        const installBtn = document.getElementById('install-btn');
+        const installModal = document.getElementById('install-modal');
+
+        function renderAppIconDataUrl(size, maskable) {
+          const c = document.createElement('canvas');
+          c.width = size;
+          c.height = size;
+          const ic = c.getContext('2d');
+          const r = maskable ? 0 : size * 0.2;
+
+          // Slate background
+          ic.fillStyle = '#15181d';
+          if (r > 0 && ic.roundRect) {
+            ic.beginPath();
+            ic.roundRect(0, 0, size, size, r);
+            ic.fill();
+          } else {
+            ic.fillRect(0, 0, size, size);
+          }
+
+          // Subtle industrial border / glow
+          const pad = maskable ? size * 0.16 : size * 0.08;
+          const inner = size - pad * 2;
+          const cx = size * 0.5;
+          const cy = size * 0.5;
+
+          const grad = ic.createRadialGradient(cx, cy, inner * 0.08, cx, cy, inner * 0.65);
+          grad.addColorStop(0, 'rgba(30, 111, 217, 0.42)');
+          grad.addColorStop(1, 'rgba(17, 21, 28, 0)');
+          ic.fillStyle = grad;
+          ic.fillRect(0, 0, size, size);
+
+          // Isometric hexagon badge frame
+          ic.strokeStyle = '#4da6ff';
+          ic.lineWidth = Math.max(3, size * 0.032);
+          ic.beginPath();
+          for (let i = 0; i < 6; i++) {
+            const ang = (Math.PI / 3) * i - Math.PI / 6;
+            const px = cx + Math.cos(ang) * (inner * 0.44);
+            const py = cy + Math.sin(ang) * (inner * 0.44);
+            if (i === 0) ic.moveTo(px, py);
+            else ic.lineTo(px, py);
+          }
+          ic.closePath();
+          ic.fillStyle = '#1e293b';
+          ic.fill();
+          ic.stroke();
+
+          // High-voltage amber lightning bolt
+          ic.fillStyle = '#f5a623';
+          ic.beginPath();
+          ic.moveTo(cx + inner * 0.04, cy - inner * 0.27);
+          ic.lineTo(cx - inner * 0.17, cy + inner * 0.02);
+          ic.lineTo(cx - inner * 0.02, cy + inner * 0.02);
+          ic.lineTo(cx - inner * 0.08, cy + inner * 0.27);
+          ic.lineTo(cx + inner * 0.18, cy - inner * 0.03);
+          ic.lineTo(cx + inner * 0.03, cy - inner * 0.03);
+          ic.closePath();
+          ic.fill();
+
+          // Leon's Team signature red dot
+          ic.fillStyle = '#ff2e3b';
+          ic.beginPath();
+          ic.arc(cx + inner * 0.22, cy - inner * 0.22, inner * 0.068, 0, Math.PI * 2);
+          ic.fill();
+
+          return c.toDataURL('image/png');
+        }
+
+        function isRunningStandalone() {
+          return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        }
+
+        function updateInstallButtonVisibility() {
+          if (!installBtn) return;
+          installBtn.style.display = isRunningStandalone() ? 'none' : 'inline-flex';
+        }
+
+        function initPWA() {
+          try {
+            const icon180 = renderAppIconDataUrl(180, false);
+            const icon192 = renderAppIconDataUrl(192, false);
+            const icon512 = renderAppIconDataUrl(512, false);
+            const icon512Mask = renderAppIconDataUrl(512, true);
+
+            const appleLink = document.getElementById('pwa-apple-icon');
+            const favLink = document.getElementById('pwa-favicon');
+            const manifestLink = document.getElementById('pwa-manifest-link');
+            if (appleLink) appleLink.href = icon180;
+            if (favLink) favLink.href = icon192;
+
+            const manifestObj = {
+              id: './',
+              start_url: './',
+              scope: './',
+              name: "HIGH VOLTAGE: LEON'S TEAM",
+              short_name: "Leon's Team",
+              description: "Isometric 2.5D tactical factory simulation game.",
+              display: 'standalone',
+              orientation: 'any',
+              theme_color: '#11151C',
+              background_color: '#15181D',
+              icons: [
+                { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+                { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+                { src: icon512Mask, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+              ],
+            };
+            const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+            if (manifestLink) manifestLink.href = URL.createObjectURL(blob);
+          } catch (_) {}
+
+          updateInstallButtonVisibility();
+
+          window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            updateInstallButtonVisibility();
+          });
+
+          window.addEventListener('appinstalled', () => {
+            deferredInstallPrompt = null;
+            if (installModal) installModal.classList.add('hidden');
+            updateInstallButtonVisibility();
+          });
+
+          if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+              AudioEngine.unlock();
+              if (deferredInstallPrompt) {
+                try {
+                  deferredInstallPrompt.prompt();
+                  const choice = await deferredInstallPrompt.userChoice;
+                  deferredInstallPrompt = null;
+                  if (choice && choice.outcome === 'accepted') {
+                    updateInstallButtonVisibility();
+                    return;
+                  }
+                } catch (_) {
+                  deferredInstallPrompt = null;
+                }
+              }
+              if (installModal) installModal.classList.remove('hidden');
+            });
+          }
+
+          const instClose = document.getElementById('inst-close-btn');
+          if (instClose && installModal) {
+            instClose.addEventListener('click', () => installModal.classList.add('hidden'));
+            installModal.addEventListener('click', (e) => {
+              if (e.target === installModal) installModal.classList.add('hidden');
+            });
+          }
+        }
+
+        /* =========================================================================
+           2. HALL DEFINITIONS (3 INDUSTRIAL HALLS)
+           ========================================================================= */
+        const HALLS = [
+          {
+            id: 0,
+            code: 'HALA 01 / 03',
+            name: 'Montaż Wstępny',
+            machineEdgeColor: '#747f8f',
+            leonDispatch: '„Piotr — trzymaj ludzi i zamykaj na zielono. Janusz znowu kręci się po montażu.”',
+            cols: 14,
+            rows: 10,
+            entryDoor: { gx: 0, gy: 3.5, spawnGx: 0.25, spawnGy: 3.5, targetGx: 1.55, targetGy: 3.7 },
+            exitDoor: { gx: 14, gy: 6.5, standGx: 13.35, standGy: 6.5 },
+            piotrStart: { gx: 1.55, gy: 3.7 },
+            januszStart: { gx: 11.2, gy: 2.2 },
+            workDuration: 6.2,
+            baseTimeLimit: 8.5,
+            beigeCount: 1,
+            beigeSpeed: 1.85,
+            januszSpeed: 2.05,
+            januszDispatchInterval: 4.5,
+            machines: [
+              { gx: 4, gy: 4, w: 2, h: 1, height: 42, label: 'PRASA-A', labels: { pl: 'PRASA-A', en: 'PRESS-A', de: 'PRESSE-A' } },
+              { gx: 8, gy: 5, w: 2, h: 1, height: 46, label: 'LINIA-B', labels: { pl: 'LINIA-B', en: 'LINE-B', de: 'LINIE-B' } },
+              { gx: 5, gy: 7, w: 2, h: 1, height: 34, label: 'STÓŁ-C', labels: { pl: 'STÓŁ-C', en: 'BENCH-C', de: 'TISCH-C' } },
+            ],
+            checkpoints: [
+              { id: 'AKPiA-01', gx: 2, gy: 2, standGx: 2.5, standGy: 3.35 },
+              { id: 'AKPiA-02', gx: 6, gy: 2, standGx: 6.5, standGy: 3.35 },
+              { id: 'AKPiA-03', gx: 11, gy: 3, standGx: 10.1, standGy: 3.5 },
+              { id: 'AKPiA-04', gx: 11, gy: 7, standGx: 10.1, standGy: 7.5 },
+              { id: 'AKPiA-05', gx: 3, gy: 8, standGx: 3.5, standGy: 7.1 },
+            ],
+          },
+          {
+            id: 1,
+            code: 'HALA 02 / 03',
+            name: 'Linia Automatyki',
+            machineEdgeColor: '#6e8899',
+            leonDispatch: '„Świetnie zamknięty montaż! Na Linii Automatyki PLC-01..06 roboty nie czekają, a Janusz ma już dwóch ludzi — pilnuj odbiorów!”',
+            cols: 14,
+            rows: 10,
+            entryDoor: { gx: 0, gy: 3.5, spawnGx: 0.25, spawnGy: 3.5, targetGx: 1.55, targetGy: 3.7 },
+            exitDoor: { gx: 14, gy: 6.5, standGx: 13.35, standGy: 6.5 },
+            piotrStart: { gx: 1.55, gy: 3.7 },
+            januszStart: { gx: 11.8, gy: 5.0 },
+            workDuration: 6.8,
+            baseTimeLimit: 9.0,
+            beigeCount: 2,
+            beigeSpeed: 2.0,
+            januszSpeed: 2.2,
+            januszDispatchInterval: 3.8,
+            machines: [
+              { gx: 4, gy: 3, w: 2, h: 1, height: 46, label: 'ROBOT-01', labels: { pl: 'ROBOT-01', en: 'ROBOT-01', de: 'ROBOTER-01' } },
+              { gx: 4, gy: 6, w: 2, h: 1, height: 46, label: 'ROBOT-02', labels: { pl: 'ROBOT-02', en: 'ROBOT-02', de: 'ROBOTER-02' } },
+              { gx: 8, gy: 3, w: 2, h: 1, height: 44, label: 'KOMPRESOR', labels: { pl: 'KOMPRESOR', en: 'COMPRESSOR', de: 'KOMPRESSOR' } },
+              { gx: 8, gy: 6, w: 2, h: 1, height: 44, label: 'CHŁODNIA', labels: { pl: 'CHŁODNIA', en: 'CHILLER', de: 'KÜHLER' } },
+            ],
+            checkpoints: [
+              { id: 'PLC-01', gx: 2, gy: 1, standGx: 2.5, standGy: 2.35 },
+              { id: 'PLC-02', gx: 7, gy: 1, standGx: 7.5, standGy: 2.35 },
+              { id: 'PLC-03', gx: 12, gy: 2, standGx: 11.1, standGy: 2.5 },
+              { id: 'PLC-04', gx: 12, gy: 7, standGx: 11.1, standGy: 7.5 },
+              { id: 'PLC-05', gx: 7, gy: 8, standGx: 7.5, standGy: 7.1 },
+              { id: 'PLC-06', gx: 2, gy: 8, standGx: 2.5, standGy: 7.1 },
+            ],
+          },
+          {
+            id: 2,
+            code: 'HALA 03 / 03',
+            name: 'Rozdzielnia Główna WN',
+            machineEdgeColor: '#8e826b',
+            leonDispatch: '„Ostatnia zmiana — Rozdzielnia Główna WN! Siedem szaf wysokiego napięcia i pełna załoga Janusza na hali. Zamykaj na zielono!”',
+            cols: 14,
+            rows: 10,
+            entryDoor: { gx: 0, gy: 3.5, spawnGx: 0.25, spawnGy: 3.5, targetGx: 1.55, targetGy: 3.7 },
+            exitDoor: { gx: 14, gy: 6.5, standGx: 13.35, standGy: 6.5 },
+            piotrStart: { gx: 1.55, gy: 3.7 },
+            januszStart: { gx: 11.5, gy: 1.8 },
+            workDuration: 7.3,
+            baseTimeLimit: 9.4,
+            beigeCount: 2,
+            beigeSpeed: 2.15,
+            januszSpeed: 2.35,
+            januszDispatchInterval: 3.3,
+            machines: [
+              { gx: 3, gy: 3, w: 2, h: 1, height: 50, label: 'TRAFO-T1', labels: { pl: 'TRAFO-T1', en: 'TRAFO-T1', de: 'TRAFO-T1' } },
+              { gx: 9, gy: 3, w: 2, h: 1, height: 50, label: 'TRAFO-T2', labels: { pl: 'TRAFO-T2', en: 'TRAFO-T2', de: 'TRAFO-T2' } },
+              { gx: 6, gy: 4, w: 2, h: 2, height: 42, label: 'SZYNY-WN', labels: { pl: 'SZYNY-WN', en: 'HV-BUS', de: 'HS-SCHIENE' } },
+              { gx: 4, gy: 7, w: 2, h: 1, height: 38, label: 'PROSTOWNIK', labels: { pl: 'PROSTOWNIK', en: 'RECTIFIER', de: 'GLEICHRICHTER' } },
+            ],
+            checkpoints: [
+              { id: 'WN-01', gx: 1, gy: 1, standGx: 1.5, standGy: 2.35 },
+              { id: 'WN-02', gx: 6, gy: 1, standGx: 6.5, standGy: 2.35 },
+              { id: 'WN-03', gx: 12, gy: 1, standGx: 11.6, standGy: 2.35 },
+              { id: 'WN-04', gx: 12, gy: 5, standGx: 11.1, standGy: 5.5 },
+              { id: 'WN-05', gx: 12, gy: 8, standGx: 11.1, standGy: 8.2 },
+              { id: 'WN-06', gx: 7, gy: 8, standGx: 7.5, standGy: 7.1 },
+              { id: 'WN-07', gx: 2, gy: 5, standGx: 2.5, standGy: 6.3 },
+            ],
+          },
+        ];
+
+        /* =========================================================================
+           3. CANVAS & ISOMETRIC PROJECTION
+           ========================================================================= */
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const BODY_FONT_FAMILY = '"Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif';
+
+        const floorCacheCanvas = document.createElement('canvas');
+        const floorCacheCtx = floorCacheCanvas.getContext('2d');
+        let floorCacheHallId = -1;
+        let floorCacheW = 0;
+        let floorCacheH = 0;
+        let floorCacheDpr = 0;
+
+        function invalidateFloorCache() {
+          floorCacheHallId = -1;
+        }
+
+        let viewW = window.innerWidth;
+        let viewH = window.innerHeight;
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+        let tileW = 64;
+        let tileH = 32;
+        let originX = 0;
+        let originY = 0;
+
+        function resizeCanvas() {
+          viewW = window.innerWidth;
+          viewH = window.innerHeight;
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(viewW * dpr);
+          canvas.height = Math.floor(viewH * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          recomputeProjection();
+        }
+
+        function recomputeProjection() {
+          const hall = HALLS[state.hallIndex];
+          const hudEl = document.getElementById('top-hud');
+          const hudBottom = hudEl ? hudEl.getBoundingClientRect().bottom : 64;
+          const topSafe = Math.max(64, hudBottom + 10);
+          const bottomSafe = viewW < 961 ? 124 : 64;
+          const availW = Math.max(260, viewW - 28);
+          const availH = Math.max(200, viewH - topSafe - bottomSafe);
+
+          const spanSum = hall.cols + hall.rows;
+          const maxTileWByWidth = availW / (spanSum * 0.5 + 0.8);
+          const maxTileWByHeight = (availH - 90) / (spanSum * 0.25 + 0.6);
+          tileW = Math.max(24, Math.min(86, Math.min(maxTileWByWidth, maxTileWByHeight)));
+          tileH = tileW * 0.5;
+
+          originX = viewW * 0.5 - ((hall.cols - hall.rows) * 0.5) * (tileW * 0.5);
+          const gridHeight = (hall.cols + hall.rows) * (tileH * 0.5);
+          originY = topSafe + (availH - gridHeight) * 0.5 + 32;
+          invalidateFloorCache();
+        }
+
+        function isoToScreen(gx, gy) {
+          return {
+            x: originX + (gx - gy) * (tileW * 0.5),
+            y: originY + (gx + gy) * (tileH * 0.5),
+          };
+        }
+
+        function screenToIso(sx, sy) {
+          const dx = (sx - originX) / (tileW * 0.5);
+          const dy = (sy - originY) / (tileH * 0.5);
+          return {
+            gx: (dx + dy) * 0.5,
+            gy: (dy - dx) * 0.5,
+          };
+        }
+
+        /* =========================================================================
+           4. GAME STATE & NAVIGATION GRID (BFS PATHFINDING)
+           ========================================================================= */
+        const HALL_DURATION_SEC = 150; // 2:30 countdown per hall
+        const INACTIVITY_LIMIT_SEC = 28; // End work if completely idle for 28s
+        const INACTIVITY_WARN_SEC = 20;
+
+        const state = {
+          mode: 'INTRO', // 'INTRO' | 'HALL_ENTRY' | 'PLAYING' | 'HALL_EXIT' | 'HALL_TRANSITION' | 'ENDED' | 'VICTORY'
+          hallIndex: 0,
+          hallTimer: 0, // elapsed seconds in current hall
+          hallTimeLeft: HALL_DURATION_SEC,
+          inactivityTimer: 0,
+          lastWarnSec: -1,
+          entryTimer: 0,
+          exitSafetyTimer: 0,
+          teamExited: false,
+          postExitDelayTimer: 0,
+          endReason: null, // 'TIME_UP' | 'INACTIVITY' | null
+          voltageCount: 0,
+          captureCount: 0,
+          introElapsed: 0,
+          introBeat: 0,
+          transitionElapsed: 0,
+          cameraGlide: 0,
+          lastClearedStats: null,
+          lastSummaryMode: 'VICTORY', // 'VICTORY' | 'TIME_UP' | 'INACTIVITY'
+          bannerText: '',
+          bannerTimer: 0,
+          screenShake: 0,
+          piotr: null,
+          janusz: null,
+          workers: [],
+          checkpoints: [],
+          machines: [],
+          effects: [], // electric arcs, scan beams, ripples
+          floatTexts: [],
+          navGrid: null, // 28 x 20 sub-tile grid (resolution 0.5 tile)
+        };
+
+        const NAV_RES = 2; // 2 cells per tile (0.5 tile step)
+
+        function buildNavGrid(hall) {
+          const w = hall.cols * NAV_RES;
+          const h = hall.rows * NAV_RES;
+          const blocked = new Uint8Array(w * h);
+
+          function blockRect(gx, gy, gw, gh) {
+            const x0 = Math.max(0, Math.floor(gx * NAV_RES));
+            const y0 = Math.max(0, Math.floor(gy * NAV_RES));
+            const x1 = Math.min(w - 1, Math.ceil((gx + gw) * NAV_RES) - 1);
+            const y1 = Math.min(h - 1, Math.ceil((gy + gh) * NAV_RES) - 1);
+            for (let y = y0; y <= y1; y++) {
+              for (let x = x0; x <= x1; x++) {
+                blocked[y * w + x] = 1;
+              }
+            }
+          }
+
+          hall.machines.forEach((m) => blockRect(m.gx, m.gy, m.w, m.h));
+          hall.checkpoints.forEach((c) => blockRect(c.gx, c.gy, 1, 1));
+
+          return { w, h, blocked };
+        }
+
+        function isWalkable(gx, gy, radius) {
+          const hall = HALLS[state.hallIndex];
+          const r = radius || 0.28;
+          if (gx - r < 0.15 || gy - r < 0.15 || gx + r > hall.cols - 0.15 || gy + r > hall.rows - 0.15) {
+            return false;
+          }
+          for (let i = 0; i < state.machines.length; i++) {
+            const m = state.machines[i];
+            if (gx + r > m.gx && gx - r < m.gx + m.w && gy + r > m.gy && gy - r < m.gy + m.h) {
+              return false;
+            }
+          }
+          for (let i = 0; i < state.checkpoints.length; i++) {
+            const c = state.checkpoints[i];
+            if (gx + r > c.gx && gx - r < c.gx + 1 && gy + r > c.gy && gy - r < c.gy + 1) {
+              return false;
+            }
+          }
+          return true;
+        }
+
+        function findPath(sx, sy, tx, ty) {
+          const ng = state.navGrid;
+          const startX = Math.max(0, Math.min(ng.w - 1, Math.floor(sx * NAV_RES)));
+          const startY = Math.max(0, Math.min(ng.h - 1, Math.floor(sy * NAV_RES)));
+          let goalX = Math.max(0, Math.min(ng.w - 1, Math.floor(tx * NAV_RES)));
+          let goalY = Math.max(0, Math.min(ng.h - 1, Math.floor(ty * NAV_RES)));
+
+          // If goal cell is blocked, find nearest open cell
+          if (ng.blocked[goalY * ng.w + goalX]) {
+            let bestD = 999;
+            let bx = goalX;
+            let by = goalY;
+            for (let dy = -3; dy <= 3; dy++) {
+              for (let dx = -3; dx <= 3; dx++) {
+                const nx = goalX + dx;
+                const ny = goalY + dy;
+                if (nx >= 0 && nx < ng.w && ny >= 0 && ny < ng.h && !ng.blocked[ny * ng.w + nx]) {
+                  const d = dx * dx + dy * dy;
+                  if (d < bestD) {
+                    bestD = d;
+                    bx = nx;
+                    by = ny;
+                  }
+                }
+              }
+            }
+            goalX = bx;
+            goalY = by;
+          }
+
+          const total = ng.w * ng.h;
+          const prev = new Int32Array(total).fill(-1);
+          const visited = new Uint8Array(total);
+          const queue = new Int32Array(total);
+          let head = 0;
+          let tail = 0;
+
+          const startIdx = startY * ng.w + startX;
+          const goalIdx = goalY * ng.w + goalX;
+          visited[startIdx] = 1;
+          queue[tail++] = startIdx;
+
+          const dirs = [
+            [1, 0], [-1, 0], [0, 1], [0, -1],
+            [1, 1], [1, -1], [-1, 1], [-1, -1],
+          ];
+
+          let found = false;
+          while (head < tail) {
+            const curr = queue[head++];
+            if (curr === goalIdx) {
+              found = true;
+              break;
+            }
+            const cx = curr % ng.w;
+            const cy = Math.floor(curr / ng.w);
+            for (let i = 0; i < dirs.length; i++) {
+              const nx = cx + dirs[i][0];
+              const ny = cy + dirs[i][1];
+              if (nx < 0 || nx >= ng.w || ny < 0 || ny >= ng.h) continue;
+              const nIdx = ny * ng.w + nx;
+              if (visited[nIdx] || ng.blocked[nIdx]) continue;
+              // Prevent diagonal corner clipping
+              if (dirs[i][0] !== 0 && dirs[i][1] !== 0) {
+                if (ng.blocked[cy * ng.w + nx] || ng.blocked[ny * ng.w + cx]) continue;
+              }
+              visited[nIdx] = 1;
+              prev[nIdx] = curr;
+              queue[tail++] = nIdx;
+            }
+          }
+
+          if (!found) return [{ gx: tx, gy: ty }];
+
+          const path = [];
+          let curr = goalIdx;
+          while (curr !== -1 && curr !== startIdx) {
+            const cx = curr % ng.w;
+            const cy = Math.floor(curr / ng.w);
+            path.push({ gx: (cx + 0.5) / NAV_RES, gy: (cy + 0.5) / NAV_RES });
+            curr = prev[curr];
+          }
+          path.reverse();
+          if (path.length > 0) {
+            path[path.length - 1] = { gx: tx, gy: ty };
+          }
+          return path;
+        }
+
+        function loadHall(hallIdx) {
+          const hall = HALLS[hallIdx];
+          state.hallIndex = hallIdx;
+          state.hallTimer = 0;
+          state.hallTimeLeft = HALL_DURATION_SEC;
+          state.inactivityTimer = 0;
+          state.lastWarnSec = -1;
+          state.entryTimer = 0;
+          state.exitSafetyTimer = 0;
+          state.teamExited = false;
+          state.postExitDelayTimer = 0;
+          state.endReason = null;
+          state.voltageCount = 0;
+          state.captureCount = 0;
+          state.effects = [];
+          state.floatTexts = [];
+          state.machines = hall.machines.map((m) => ({ ...m }));
+          state.checkpoints = hall.checkpoints.map((c) => ({
+            ...c,
+            state: 'RED_IDLE', // 'RED_IDLE' | 'WORKING' | 'READY' | 'GREEN' | 'LOCKED'
+            progress: 0,
+            workElapsed: 0,
+            readyWaitTimer: 0,
+            lockTimer: 0,
+            beigeImmunityTimer: 0,
+            orangeAlerted: false,
+            assignedWorkerId: null,
+            scanFlash: 0,
+          }));
+          state.navGrid = buildNavGrid(hall);
+
+          const ed = hall.entryDoor;
+          state.piotr = {
+            gx: ed.spawnGx,
+            gy: ed.spawnGy,
+            vx: 0,
+            vy: 0,
+            speed: 3.8,
+            facing: 1,
+            walkPhase: 0,
+            path: [],
+            intent: null, // { type: 'CHECKPOINT'|'JANUSZ', targetId }
+            pendingRecoveredAssignment: false,
+            stunCooldown: 0,
+            hintCooldown: 0,
+            exited: false,
+          };
+
+          state.janusz = {
+            gx: hall.januszStart.gx,
+            gy: hall.januszStart.gy,
+            speed: hall.januszSpeed,
+            facing: -1,
+            walkPhase: 0,
+            frozenTimer: 0,
+            dispatchTimer: 2.6,
+            patrolTarget: null,
+            path: [],
+          };
+
+          const workers = [];
+          // 3 Blue Workers entering alongside Piotr through WEJŚCIE
+          const blueOffsets = [
+            { dx: -0.1, dy: -0.32 },
+            { dx: -0.1, dy: 0.32 },
+            { dx: 0.12, dy: 0.0 },
+          ];
+          for (let i = 0; i < 3; i++) {
+            workers.push({
+              id: 'B' + (i + 1),
+              team: 'BLUE',
+              state: 'FOLLOW', // 'FOLLOW' | 'TO_STATION' | 'WORKING' | 'READY' | 'PATROL' | 'TO_TARGET' | 'INTERFERING' | 'COOLDOWN'
+              gx: Math.max(0.2, ed.spawnGx + blueOffsets[i].dx),
+              gy: Math.max(0.3, Math.min(hall.rows - 0.3, ed.spawnGy + blueOffsets[i].dy)),
+              slotIndex: i,
+              speed: 3.45,
+              facing: 1,
+              walkPhase: i * 1.1,
+              targetCpId: null,
+              targetWorkerId: null,
+              interfereTimer: 0,
+              actionCooldown: 0,
+              recoveredFresh: false,
+              exited: false,
+              path: [],
+              repathTimer: 0,
+            });
+          }
+
+          // Strict 1 to 2 Beige Workers per hall
+          const beigeOffsets = [
+            { dx: -0.6, dy: 0.45 },
+            { dx: 0.6, dy: 0.45 },
+          ];
+          for (let i = 0; i < hall.beigeCount; i++) {
+            workers.push({
+              id: 'J' + (i + 1),
+              team: 'BEIGE',
+              state: 'PATROL',
+              gx: hall.januszStart.gx + beigeOffsets[i].dx,
+              gy: hall.januszStart.gy + beigeOffsets[i].dy,
+              slotIndex: i,
+              speed: hall.beigeSpeed,
+              facing: -1,
+              walkPhase: i * 1.7,
+              targetCpId: null,
+              targetWorkerId: null,
+              interfereTimer: 0,
+              actionCooldown: 2.5 + i * 2.0,
+              recoveredFresh: false,
+              path: [],
+              repathTimer: 0,
+            });
+          }
+
+          state.workers = workers;
+          updateHallTabs();
+          recomputeProjection();
+          updateHUD();
+        }
+
+        function dist(ax, ay, bx, by) {
+          return Math.hypot(ax - bx, ay - by);
+        }
+
+        function showBanner(text, duration) {
+          state.bannerText = text;
+          state.bannerTimer = duration || 2.8;
+          const el = document.getElementById('tactical-banner');
+          el.textContent = text;
+          el.classList.add('visible');
+        }
+
+        function addFloatText(gx, gy, text, color) {
+          state.floatTexts.push({ gx, gy, text, color, life: 1.5, maxLife: 1.5 });
+        }
+
+        function addElectricArc(ax, ay, bx, by) {
+          state.effects.push({
+            type: 'ARC',
+            ax, ay, bx, by,
+            life: 0.65,
+            maxLife: 0.65,
+          });
+        }
+
+        function addRingEffect(gx, gy, color) {
+          state.effects.push({
+            type: 'RING',
+            gx, gy, color,
+            life: 0.55,
+            maxLife: 0.55,
+          });
+        }
+
+        /* =========================================================================
+           5. CORE GAMEPLAY INTERACTIONS
+           ========================================================================= */
+        function getAvailableBlueWorkers() {
+          return state.workers.filter((w) => w.team === 'BLUE' && w.state === 'FOLLOW');
+        }
+
+        function getCapturedWorkers() {
+          return state.workers.filter((w) => w.team === 'BEIGE' && w.id.startsWith('B'));
+        }
+
+        function getNearestInteractable() {
+          const p = state.piotr;
+          let bestReady = null;
+          let bestReadyDist = 1.65;
+          let bestStart = null;
+          let bestStartDist = 1.65;
+
+          for (const cp of state.checkpoints) {
+            const d = dist(p.gx, p.gy, cp.standGx, cp.standGy);
+            const dBox = dist(p.gx, p.gy, cp.gx + 0.5, cp.gy + 0.5);
+            const effectiveD = Math.min(d, dBox);
+            if (cp.state === 'READY' && effectiveD < bestReadyDist) {
+              bestReadyDist = effectiveD;
+              bestReady = cp;
+            } else if (cp.state === 'RED_IDLE' && effectiveD < bestStartDist) {
+              bestStartDist = effectiveD;
+              bestStart = cp;
+            }
+          }
+
+          const dJanusz = dist(p.gx, p.gy, state.janusz.gx, state.janusz.gy);
+          const captured = getCapturedWorkers();
+          const availBlue = getAvailableBlueWorkers();
+
+          if (bestReady) {
+            return { type: 'FINISH', cp: bestReady };
+          }
+          if (dJanusz <= 1.75 && captured.length > 0 && !p.pendingRecoveredAssignment) {
+            return { type: 'VOLTAGE_RECOVER' };
+          }
+          if (bestStart && availBlue.length > 0) {
+            return { type: 'START', cp: bestStart };
+          }
+          if (dJanusz <= 1.75 && state.janusz.frozenTimer <= 0 && p.stunCooldown <= 0) {
+            return { type: 'VOLTAGE_STUN' };
+          }
+          if (bestStart && availBlue.length === 0) {
+            return { type: 'NO_WORKER', cp: bestStart };
+          }
+          if (dJanusz <= 1.75 && p.pendingRecoveredAssignment) {
+            return { type: 'NEED_ASSIGN' };
+          }
+          return null;
+        }
+
+        function triggerStartCheckpoint(cp) {
+          if (cp.state !== 'RED_IDLE') return false;
+          const avail = getAvailableBlueWorkers();
+          if (avail.length === 0) {
+            showBanner(t('bannerNoFree'), 2.4);
+            return false;
+          }
+          // Prefer newly recovered worker first
+          avail.sort((a, b) => (b.recoveredFresh ? 1 : 0) - (a.recoveredFresh ? 1 : 0));
+          const worker = avail[0];
+          worker.recoveredFresh = false;
+          worker.state = 'TO_STATION';
+          worker.targetCpId = cp.id;
+          worker.path = findPath(worker.gx, worker.gy, cp.standGx, cp.standGy);
+
+          cp.state = 'WORKING';
+          cp.progress = 0;
+          cp.workElapsed = 0;
+          cp.readyWaitTimer = 0;
+          cp.orangeAlerted = false;
+          cp.assignedWorkerId = worker.id;
+          cp.scanFlash = 0.6;
+
+          if (state.piotr.pendingRecoveredAssignment) {
+            state.piotr.pendingRecoveredAssignment = false;
+            showBanner(t('bannerRecoveredAssigned'), 2.4);
+          }
+
+          addRingEffect(cp.gx + 0.5, cp.gy + 0.5, '#4da6ff');
+          addFloatText(cp.gx + 0.5, cp.gy + 0.5, t('ftScanStart'), '#4da6ff');
+          AudioEngine.playScanStart();
+          return true;
+        }
+
+        function triggerFinishCheckpoint(cp) {
+          if (cp.state !== 'READY') return false;
+          const worker = state.workers.find((w) => w.id === cp.assignedWorkerId);
+          if (worker) {
+            worker.state = 'FOLLOW';
+            worker.targetCpId = null;
+            worker.path = [];
+          }
+          cp.state = 'GREEN';
+          cp.assignedWorkerId = null;
+          cp.progress = 100;
+          cp.readyWaitTimer = 0;
+          cp.scanFlash = 0.7;
+
+          addRingEffect(cp.gx + 0.5, cp.gy + 0.5, '#1fd16a');
+          addFloatText(cp.gx + 0.5, cp.gy + 0.5, t('ftFinishOk'), '#1fd16a');
+          AudioEngine.playFinishGreen();
+          checkHallCompletion();
+          return true;
+        }
+
+        function triggerHighVoltage(isRecovery) {
+          const p = state.piotr;
+          const j = state.janusz;
+          const captured = getCapturedWorkers();
+
+          if (isRecovery && p.pendingRecoveredAssignment) {
+            if (p.hintCooldown <= 0) {
+              showBanner(t('bannerNeedAssignFirst'), 2.4);
+              p.hintCooldown = 1.6;
+            }
+            return false;
+          }
+
+          j.frozenTimer = 5.0;
+          j.path = [];
+          state.voltageCount++;
+          state.screenShake = 0.28;
+          p.stunCooldown = 7.0;
+
+          addElectricArc(p.gx, p.gy, j.gx, j.gy);
+          addRingEffect(j.gx, j.gy, '#4da6ff');
+          AudioEngine.playHighVoltage();
+
+          if (captured.length > 0 && !p.pendingRecoveredAssignment) {
+            const recovered = captured[0];
+            recovered.team = 'BLUE';
+            recovered.state = 'FOLLOW';
+            recovered.targetCpId = null;
+            recovered.targetWorkerId = null;
+            recovered.interfereTimer = 0;
+            recovered.recoveredFresh = true;
+            recovered.path = [];
+            p.pendingRecoveredAssignment = true;
+            addFloatText(j.gx, j.gy, t('ftVoltageRecover'), '#4da6ff');
+            showBanner(t('bannerVoltageRecover'), 3.4);
+          } else {
+            addFloatText(j.gx, j.gy, t('ftVoltageStun'), '#f5a623');
+            showBanner(t('bannerVoltageStun'), 2.2);
+          }
+          return true;
+        }
+
+        function markActivity() {
+          state.inactivityTimer = 0;
+          state.lastWarnSec = -1;
+        }
+
+        function beginHallEntryWalk(bannerKey, bannerVars) {
+          const hall = HALLS[state.hallIndex];
+          state.mode = 'HALL_ENTRY';
+          state.entryTimer = 0;
+          state.inactivityTimer = 0;
+          state.lastWarnSec = -1;
+          state.cameraGlide = 0;
+          state.piotr.intent = null;
+          state.piotr.path = findPath(state.piotr.gx, state.piotr.gy, hall.entryDoor.targetGx, hall.entryDoor.targetGy);
+          AudioEngine.setMusicActive(true);
+          if (bannerKey) showBanner(t(bannerKey, bannerVars), 3.4);
+        }
+
+        function performPrimaryAction() {
+          if (state.mode !== 'PLAYING') return;
+          markActivity();
+          const act = getNearestInteractable();
+          if (!act) return;
+          if (act.type === 'FINISH') {
+            triggerFinishCheckpoint(act.cp);
+          } else if (act.type === 'START') {
+            triggerStartCheckpoint(act.cp);
+          } else if (act.type === 'VOLTAGE_RECOVER') {
+            triggerHighVoltage(true);
+          } else if (act.type === 'VOLTAGE_STUN') {
+            triggerHighVoltage(false);
+          } else if (act.type === 'NO_WORKER') {
+            showBanner(t('bannerAllBusy'), 2.2);
+          } else if (act.type === 'NEED_ASSIGN') {
+            showBanner(t('bannerNeedAssignNew'), 2.4);
+          }
+        }
+
+        function checkHallCompletion() {
+          const allGreen = state.checkpoints.every((c) => c.state === 'GREEN');
+          if (!allGreen || state.mode === 'HALL_EXIT') return;
+          keysDown.clear();
+          resetJoystick();
+
+          const hall = HALLS[state.hallIndex];
+          state.mode = 'HALL_EXIT';
+          state.exitSafetyTimer = 0;
+          state.teamExited = false;
+          state.postExitDelayTimer = 0;
+          state.piotr.exited = false;
+          state.piotr.intent = null;
+          state.piotr.path = findPath(state.piotr.gx, state.piotr.gy, hall.exitDoor.standGx, hall.exitDoor.standGy);
+
+          // Gather all remaining blue workers so the whole blue team walks out through the exit
+          for (const w of state.workers) {
+            if (w.team === 'BLUE') {
+              w.exited = false;
+              w.state = 'FOLLOW';
+              w.targetCpId = null;
+              w.path = findPath(w.gx, w.gy, hall.exitDoor.standGx, hall.exitDoor.standGy);
+            } else if (w.team === 'BEIGE') {
+              w.state = 'PATROL';
+              w.targetCpId = null;
+              w.path = [];
+            }
+          }
+
+          AudioEngine.playHallComplete();
+          addRingEffect(hall.exitDoor.standGx, hall.exitDoor.standGy, '#1fd16a');
+          showBanner(t('bannerExiting'), 3.6);
+        }
+
+        function completeHallAfterExit() {
+          if (state.mode !== 'HALL_EXIT') return;
+          keysDown.clear();
+          resetJoystick();
+
+          if (state.hallIndex < HALLS.length - 1) {
+            const clearedStats = {
+              clearedHallIdx: state.hallIndex,
+              nextHallIdx: state.hallIndex + 1,
+              green: state.checkpoints.length,
+              total: state.checkpoints.length,
+              time: state.hallTimer,
+              voltage: state.voltageCount,
+              captures: state.captureCount,
+            };
+            const nextIdx = state.hallIndex + 1;
+            AudioEngine.setMusicActive(false);
+            AudioEngine.playHallTransition();
+            startHallTransitionIntro(nextIdx, clearedStats);
+          } else {
+            state.mode = 'VICTORY';
+            AudioEngine.setMusicActive(false);
+            AudioEngine.playVictoryAll();
+            showSummaryModal('VICTORY');
+          }
+        }
+
+        function triggerShiftEnded(reason) {
+          if (state.mode !== 'PLAYING') return;
+          keysDown.clear();
+          resetJoystick();
+          state.mode = 'ENDED';
+          state.endReason = reason;
+          AudioEngine.setMusicActive(false);
+          AudioEngine.playShiftFailed();
+          showSummaryModal(reason);
+        }
+
+        /* =========================================================================
+           6. AI & SIMULATION UPDATE
+           ========================================================================= */
+        function moveEntityAlongPath(ent, speed, dt) {
+          if (!ent.path || ent.path.length === 0) return false;
+          const target = ent.path[0];
+          const dx = target.gx - ent.gx;
+          const dy = target.gy - ent.gy;
+          const d = Math.hypot(dx, dy);
+          if (d < 0.14) {
+            ent.gx = target.gx;
+            ent.gy = target.gy;
+            ent.path.shift();
+            return ent.path.length > 0;
+          }
+          const step = Math.min(d, speed * dt);
+          ent.gx += (dx / d) * step;
+          ent.gy += (dy / d) * step;
+          const screenDx = dx - dy;
+          if (Math.abs(screenDx) > 0.02) ent.facing = screenDx >= 0 ? 1 : -1;
+          ent.walkPhase += dt * 11;
+          return true;
+        }
+
+        function updateHallEntry(dt) {
+          const hall = HALLS[state.hallIndex];
+          state.entryTimer += dt;
+          const p = state.piotr;
+          moveEntityAlongPath(p, p.speed, dt);
+
+          const followOffsets = [
+            { dx: -0.55, dy: 0.35 },
+            { dx: 0.55, dy: 0.35 },
+            { dx: 0.0, dy: 0.65 },
+          ];
+          let slot = 0;
+          for (const w of state.workers) {
+            if (w.team !== 'BLUE') continue;
+            const off = followOffsets[slot % followOffsets.length];
+            slot++;
+            const tx = Math.max(0.3, Math.min(hall.cols - 0.3, p.gx + off.dx));
+            const ty = Math.max(0.3, Math.min(hall.rows - 0.3, p.gy + off.dy));
+            const d = dist(w.gx, w.gy, tx, ty);
+            if (d > 0.18) {
+              const step = Math.min(d, w.speed * 1.08 * dt);
+              w.gx += ((tx - w.gx) / d) * step;
+              w.gy += ((ty - w.gy) / d) * step;
+              w.walkPhase += dt * 11;
+            }
+          }
+
+          if (p.path.length === 0 || state.entryTimer >= 1.65) {
+            p.path = [];
+            state.mode = 'PLAYING';
+            markActivity();
+          }
+        }
+
+        function updateHallExit(dt) {
+          const hall = HALLS[state.hallIndex];
+          state.exitSafetyTimer += dt;
+          const p = state.piotr;
+          const exitX = hall.exitDoor.standGx;
+          const exitY = hall.exitDoor.standGy;
+
+          if (!p.exited) {
+            if (dist(p.gx, p.gy, exitX, exitY) <= 0.42) {
+              p.exited = true;
+              addRingEffect(hall.exitDoor.gx - 0.15, hall.exitDoor.gy, '#1fd16a');
+            } else {
+              if (p.path.length === 0) {
+                p.path = findPath(p.gx, p.gy, exitX, exitY);
+              }
+              moveEntityAlongPath(p, p.speed * 1.22, dt);
+            }
+          }
+
+          for (const w of state.workers) {
+            if (w.team !== 'BLUE' || w.exited) continue;
+            const d = dist(w.gx, w.gy, exitX, exitY);
+            if (d <= 0.55) {
+              w.exited = true;
+              addRingEffect(hall.exitDoor.gx - 0.15, hall.exitDoor.gy, '#4da6ff');
+            } else {
+              w.repathTimer -= dt;
+              if (w.path.length === 0 || w.repathTimer <= 0) {
+                w.path = findPath(w.gx, w.gy, exitX, exitY);
+                w.repathTimer = 0.4;
+              }
+              moveEntityAlongPath(w, w.speed * 1.35, dt);
+            }
+          }
+
+          for (let i = state.effects.length - 1; i >= 0; i--) {
+            state.effects[i].life -= dt;
+            if (state.effects[i].life <= 0) state.effects.splice(i, 1);
+          }
+          for (let i = state.floatTexts.length - 1; i >= 0; i--) {
+            state.floatTexts[i].life -= dt;
+            if (state.floatTexts[i].life <= 0) state.floatTexts.splice(i, 1);
+          }
+
+          if (!state.teamExited) {
+            const allBlueExited = p.exited && state.workers.every((w) => w.team !== 'BLUE' || w.exited);
+            if (allBlueExited || state.exitSafetyTimer >= 5.0) {
+              p.exited = true;
+              for (const w of state.workers) {
+                if (w.team === 'BLUE') w.exited = true;
+              }
+              state.teamExited = true;
+              state.postExitDelayTimer = 0;
+            }
+          } else {
+            state.postExitDelayTimer += dt;
+            if (state.postExitDelayTimer >= 2.0) {
+              completeHallAfterExit();
+            }
+          }
+        }
+
+        function updateSimulation(dt) {
+          const hall = HALLS[state.hallIndex];
+          state.hallTimer += dt;
+          state.hallTimeLeft = Math.max(0, state.hallTimeLeft - dt);
+
+          if (state.hallTimeLeft <= 0) {
+            triggerShiftEnded('TIME_UP');
+            return;
+          }
+
+          if (state.bannerTimer > 0) {
+            state.bannerTimer -= dt;
+            if (state.bannerTimer <= 0) {
+              document.getElementById('tactical-banner').classList.remove('visible');
+            }
+          }
+          if (state.screenShake > 0) {
+            state.screenShake = Math.max(0, state.screenShake - dt);
+          }
+
+          // Update Piotr movement (keyboard/joystick overrides click-path)
+          const p = state.piotr;
+          if (p.stunCooldown > 0) p.stunCooldown = Math.max(0, p.stunCooldown - dt);
+          if (p.hintCooldown > 0) p.hintCooldown = Math.max(0, p.hintCooldown - dt);
+
+          const inputVec = getMoveInputVector();
+          const hasMoveInput = inputVec.mag > 0.08;
+          if (hasMoveInput) {
+            markActivity();
+            p.path = [];
+            p.intent = null;
+            // Convert screen-space (ix, iy) to world isometric movement
+            let wx = inputVec.ix + inputVec.iy;
+            let wy = inputVec.iy - inputVec.ix;
+            const wLen = Math.hypot(wx, wy) || 1;
+            wx /= wLen;
+            wy /= wLen;
+            const stepDist = p.speed * Math.min(1, inputVec.mag) * dt;
+            const nextX = p.gx + wx * stepDist;
+            const nextY = p.gy + wy * stepDist;
+            if (isWalkable(nextX, p.gy, 0.27)) p.gx = nextX;
+            if (isWalkable(p.gx, nextY, 0.27)) p.gy = nextY;
+            if (Math.abs(inputVec.ix) > 0.05) p.facing = inputVec.ix >= 0 ? 1 : -1;
+            p.walkPhase += dt * 12;
+          } else if (p.path.length > 0) {
+            moveEntityAlongPath(p, p.speed, dt);
+            if (p.path.length === 0 && p.intent) {
+              const intent = p.intent;
+              p.intent = null;
+              if (intent.type === 'CHECKPOINT') {
+                const cp = state.checkpoints.find((c) => c.id === intent.targetId);
+                if (cp) {
+                  if (cp.state === 'READY') triggerFinishCheckpoint(cp);
+                  else if (cp.state === 'RED_IDLE') triggerStartCheckpoint(cp);
+                }
+              } else if (intent.type === 'JANUSZ') {
+                if (dist(p.gx, p.gy, state.janusz.gx, state.janusz.gy) <= 1.85) {
+                  const cap = getCapturedWorkers();
+                  triggerHighVoltage(cap.length > 0);
+                }
+              }
+            }
+          }
+
+          // Automatic proximity High Voltage contact when captured worker can be recovered
+          const capturedList = getCapturedWorkers();
+          if (capturedList.length > 0 && !p.pendingRecoveredAssignment) {
+            if (dist(p.gx, p.gy, state.janusz.gx, state.janusz.gy) <= 1.25) {
+              triggerHighVoltage(true);
+            }
+          } else if (capturedList.length > 0 && p.pendingRecoveredAssignment) {
+            if (dist(p.gx, p.gy, state.janusz.gx, state.janusz.gy) <= 1.15 && p.hintCooldown <= 0) {
+              showBanner(t('bannerNeedAssignFirst'), 2.2);
+              p.hintCooldown = 2.0;
+            }
+          }
+
+          // Update Checkpoints
+          for (const cp of state.checkpoints) {
+            if (cp.scanFlash > 0) cp.scanFlash = Math.max(0, cp.scanFlash - dt);
+            if (cp.beigeImmunityTimer > 0) cp.beigeImmunityTimer = Math.max(0, cp.beigeImmunityTimer - dt);
+
+            if (cp.state === 'LOCKED') {
+              cp.lockTimer -= dt;
+              if (cp.lockTimer <= 0) {
+                cp.lockTimer = 0;
+                cp.state = 'RED_IDLE';
+                addFloatText(cp.gx + 0.5, cp.gy + 0.5, t('ftUnlocked'), '#f8fafc');
+              }
+            } else if (cp.state === 'WORKING') {
+              cp.workElapsed += dt;
+              if (!cp.orangeAlerted && cp.workElapsed >= hall.baseTimeLimit) {
+                cp.orangeAlerted = true;
+                AudioEngine.playOrangeWarning();
+                addFloatText(cp.gx + 0.5, cp.gy + 0.5, t('ftTimeWarning'), '#ff9900');
+              }
+              const worker = state.workers.find((w) => w.id === cp.assignedWorkerId);
+              if (worker && worker.state === 'WORKING') {
+                cp.progress = Math.min(100, cp.progress + (100 / hall.workDuration) * dt);
+                if (cp.progress >= 100) {
+                  cp.progress = 100;
+                  cp.state = 'READY';
+                  cp.readyWaitTimer = 0;
+                  worker.state = 'READY';
+                  AudioEngine.playReadySignal();
+                  addFloatText(cp.gx + 0.5, cp.gy + 0.5, t('ftReady100'), '#2ceaa3');
+                }
+              }
+            } else if (cp.state === 'READY') {
+              cp.workElapsed += dt;
+              if (!cp.orangeAlerted && cp.workElapsed >= hall.baseTimeLimit) {
+                cp.orangeAlerted = true;
+                AudioEngine.playOrangeWarning();
+              }
+              cp.readyWaitTimer += dt;
+              // 10-second grace window; capture only after 13.5s completely unattended (or deliberate beige contact after 10s)
+              if (cp.readyWaitTimer >= 13.5) {
+                const worker = state.workers.find((w) => w.id === cp.assignedWorkerId);
+                if (worker) {
+                  captureBlueWorker(worker, cp, 'reasonWaitedTooLong');
+                }
+              }
+            }
+          }
+
+          // Update Janusz AI
+          const j = state.janusz;
+          if (j.frozenTimer > 0) {
+            j.frozenTimer = Math.max(0, j.frozenTimer - dt);
+            if (Math.random() < 0.35) {
+              addElectricArc(
+                j.gx + (Math.random() - 0.5) * 0.6,
+                j.gy + (Math.random() - 0.5) * 0.6,
+                j.gx + (Math.random() - 0.5) * 0.6,
+                j.gy + (Math.random() - 0.5) * 0.6
+              );
+            }
+          } else {
+            // Patrol between hall quadrants
+            if (j.path.length === 0) {
+              const candidates = state.checkpoints.filter((c) => c.state !== 'GREEN');
+              const pick = candidates.length > 0
+                ? candidates[Math.floor(Math.random() * candidates.length)]
+                : state.checkpoints[Math.floor(Math.random() * state.checkpoints.length)];
+              j.path = findPath(j.gx, j.gy, pick.standGx, pick.standGy);
+            } else {
+              moveEntityAlongPath(j, j.speed, dt);
+            }
+
+            // Dispatch idle beige workers
+            j.dispatchTimer -= dt;
+            if (j.dispatchTimer <= 0) {
+              j.dispatchTimer = hall.januszDispatchInterval;
+              assignBeigeTask();
+            }
+          }
+
+          // Update all Workers
+          const followOffsets = [
+            { dx: -0.6, dy: 0.4 },
+            { dx: 0.6, dy: 0.4 },
+            { dx: 0.0, dy: 0.72 },
+          ];
+          let followSlot = 0;
+
+          for (const w of state.workers) {
+            if (w.actionCooldown > 0) w.actionCooldown = Math.max(0, w.actionCooldown - dt);
+
+            if (w.team === 'BLUE') {
+              if (w.state === 'FOLLOW') {
+                const off = followOffsets[followSlot % followOffsets.length];
+                followSlot++;
+                let tx = Math.max(0.4, Math.min(hall.cols - 0.4, p.gx + off.dx));
+                let ty = Math.max(0.4, Math.min(hall.rows - 0.4, p.gy + off.dy));
+                if (!isWalkable(tx, ty, 0.2)) {
+                  tx = p.gx;
+                  ty = p.gy;
+                }
+                const d = dist(w.gx, w.gy, tx, ty);
+                if (d > 0.24) {
+                  w.repathTimer -= dt;
+                  if (w.path.length === 0 || w.repathTimer <= 0) {
+                    w.path = findPath(w.gx, w.gy, tx, ty);
+                    w.repathTimer = 0.45;
+                  }
+                  moveEntityAlongPath(w, w.speed, dt);
+                } else {
+                  w.path = [];
+                }
+              } else if (w.state === 'TO_STATION') {
+                const cp = state.checkpoints.find((c) => c.id === w.targetCpId);
+                if (!cp || cp.state !== 'WORKING') {
+                  w.state = 'FOLLOW';
+                  w.targetCpId = null;
+                  w.path = [];
+                  continue;
+                }
+                moveEntityAlongPath(w, w.speed, dt);
+                if (dist(w.gx, w.gy, cp.standGx, cp.standGy) <= 0.25) {
+                  w.gx = cp.standGx;
+                  w.gy = cp.standGy;
+                  w.path = [];
+                  w.state = 'WORKING';
+                  w.facing = cp.gx + 0.5 >= w.gx ? 1 : -1;
+                }
+              } else if (w.state === 'WORKING') {
+                w.walkPhase += dt * 7;
+              } else if (w.state === 'READY') {
+                w.walkPhase += dt * 6;
+              }
+            } else {
+              // BEIGE WORKER
+              if (w.state === 'PATROL' || w.state === 'COOLDOWN') {
+                if (w.state === 'COOLDOWN' && w.actionCooldown <= 0) {
+                  w.state = 'PATROL';
+                }
+                // Calmly orbit near Janusz when idle or on rework cooldown
+                if (j.frozenTimer <= 0) {
+                  const tx = Math.max(0.5, Math.min(hall.cols - 0.5, j.gx + (w.slotIndex % 2 === 0 ? -0.75 : 0.75)));
+                  const ty = Math.max(0.5, Math.min(hall.rows - 0.5, j.gy + 0.55));
+                  if (dist(w.gx, w.gy, tx, ty) > 0.42) {
+                    if (w.path.length === 0) w.path = findPath(w.gx, w.gy, tx, ty);
+                    moveEntityAlongPath(w, w.speed * 0.85, dt);
+                  } else {
+                    w.path = [];
+                  }
+                }
+              } else if (w.state === 'TO_TARGET') {
+                const nonGreenCount = state.checkpoints.filter((c) => c.state !== 'GREEN').length;
+                const cp = state.checkpoints.find((c) => c.id === w.targetCpId);
+                if (nonGreenCount <= 1 || !cp || cp.state === 'GREEN' || cp.state === 'LOCKED' || cp.beigeImmunityTimer > 0) {
+                  // Never block or interfere with the last remaining uncompleted checkpoint
+                  if (!(nonGreenCount > 1 && cp && cp.state === 'READY' && cp.readyWaitTimer >= 10.0)) {
+                    w.state = 'PATROL';
+                    w.targetCpId = null;
+                    w.path = [];
+                    continue;
+                  }
+                }
+                // Do not camp/snatch a freshly ready worker still inside the 10s grace window
+                if (cp.state === 'READY' && cp.readyWaitTimer < 10.0) {
+                  w.state = 'PATROL';
+                  w.targetCpId = null;
+                  w.path = [];
+                  continue;
+                }
+
+                moveEntityAlongPath(w, w.speed, dt);
+                if (dist(w.gx, w.gy, cp.standGx, cp.standGy) <= 0.35) {
+                  w.path = [];
+                  w.state = 'INTERFERING';
+                  w.interfereTimer = cp.state === 'READY' ? 1.4 : 1.7;
+                }
+              } else if (w.state === 'INTERFERING') {
+                w.walkPhase += dt * 10;
+                w.interfereTimer -= dt;
+                const nonGreenCount = state.checkpoints.filter((c) => c.state !== 'GREEN').length;
+                const cp = state.checkpoints.find((c) => c.id === w.targetCpId);
+                if (nonGreenCount <= 1 || !cp || cp.state === 'GREEN') {
+                  w.state = 'PATROL';
+                  w.targetCpId = null;
+                  continue;
+                }
+                if (w.interfereTimer <= 0) {
+                  if (cp.state === 'READY') {
+                    if (cp.readyWaitTimer >= 10.0) {
+                      const bw = state.workers.find((x) => x.id === cp.assignedWorkerId);
+                      if (bw) captureBlueWorker(bw, cp, 'reasonBeigeCaptured', w);
+                    }
+                  } else if (cp.beigeImmunityTimer <= 0) {
+                    interfereCheckpoint(cp, w);
+                  }
+                  w.state = 'COOLDOWN';
+                  w.actionCooldown = 11.0 + Math.random() * 2.5;
+                  w.targetCpId = null;
+                }
+              }
+            }
+          }
+
+          // Track inactivity: reset timer while player moves/acts or any station is actively progressing
+          const hasActiveHallProgress =
+            p.path.length > 0 ||
+            state.workers.some((w) => w.team === 'BLUE' && w.state === 'TO_STATION') ||
+            state.checkpoints.some((c) => c.state === 'WORKING' || c.state === 'LOCKED');
+
+          if (hasMoveInput || hasActiveHallProgress) {
+            markActivity();
+          } else {
+            state.inactivityTimer += dt;
+            if (state.inactivityTimer >= INACTIVITY_WARN_SEC) {
+              const secLeft = Math.max(1, Math.ceil(INACTIVITY_LIMIT_SEC - state.inactivityTimer));
+              if (secLeft !== state.lastWarnSec) {
+                state.lastWarnSec = secLeft;
+                showBanner(t('bannerInactivityWarn', { sec: secLeft }), 1.2);
+              }
+            }
+            if (state.inactivityTimer >= INACTIVITY_LIMIT_SEC) {
+              triggerShiftEnded('INACTIVITY');
+              return;
+            }
+          }
+
+          // Update Visual Effects & Floating Texts
+          for (let i = state.effects.length - 1; i >= 0; i--) {
+            state.effects[i].life -= dt;
+            if (state.effects[i].life <= 0) state.effects.splice(i, 1);
+          }
+          for (let i = state.floatTexts.length - 1; i >= 0; i--) {
+            state.floatTexts[i].life -= dt;
+            if (state.floatTexts[i].life <= 0) state.floatTexts.splice(i, 1);
+          }
+        }
+
+        function assignBeigeTask() {
+          const hall = HALLS[state.hallIndex];
+          // Never block or harass the last remaining uncompleted checkpoint
+          const nonGreenCount = state.checkpoints.filter((c) => c.state !== 'GREEN').length;
+          if (nonGreenCount <= 1) return;
+
+          // Cap active beige attackers so they never swarm the hall
+          const activeBeige = state.workers.filter(
+            (w) => w.team === 'BEIGE' && (w.state === 'TO_TARGET' || w.state === 'INTERFERING')
+          );
+          if (activeBeige.length >= hall.beigeCount) return;
+
+          const readyBeige = state.workers.filter(
+            (w) => w.team === 'BEIGE' && w.state === 'PATROL' && w.actionCooldown <= 0
+          );
+          if (readyBeige.length === 0) return;
+
+          // Priority 1: Only READY checkpoints whose 10-second grace timer has ALREADY expired
+          let targetCp = state.checkpoints.find((c) => c.state === 'READY' && c.readyWaitTimer >= 10.0);
+
+          // Priority 2: Idle RED checkpoints not on 12s immunity cooldown
+          if (!targetCp) {
+            const redIdle = state.checkpoints.filter(
+              (c) => c.state === 'RED_IDLE' && c.beigeImmunityTimer <= 0
+            );
+            if (redIdle.length > 0) targetCp = redIdle[Math.floor(Math.random() * redIdle.length)];
+          }
+
+          // Priority 3: Working checkpoints below 70% progress, not on immunity, when Piotr isn't standing guard
+          if (!targetCp) {
+            const working = state.checkpoints.filter(
+              (c) =>
+                c.state === 'WORKING' &&
+                c.beigeImmunityTimer <= 0 &&
+                c.progress < 70 &&
+                dist(state.piotr.gx, state.piotr.gy, c.standGx, c.standGy) > 1.8
+            );
+            if (working.length > 0) targetCp = working[Math.floor(Math.random() * working.length)];
+          }
+
+          if (!targetCp) return;
+          const worker = readyBeige[0];
+          worker.state = 'TO_TARGET';
+          worker.targetCpId = targetCp.id;
+          worker.path = findPath(worker.gx, worker.gy, targetCp.standGx, targetCp.standGy);
+        }
+
+        function interfereCheckpoint(cp, beigeWorker) {
+          if (state.checkpoints.filter((c) => c.state !== 'GREEN').length <= 1) return;
+          if (cp.assignedWorkerId) {
+            const bw = state.workers.find((w) => w.id === cp.assignedWorkerId);
+            if (bw && bw.team === 'BLUE') {
+              bw.state = 'FOLLOW';
+              bw.targetCpId = null;
+              bw.path = [];
+            }
+          }
+          cp.assignedWorkerId = null;
+          cp.progress = 0;
+          cp.workElapsed = 0;
+          cp.readyWaitTimer = 0;
+          cp.orangeAlerted = false;
+          cp.state = 'LOCKED';
+          cp.lockTimer = 5.0; // Clear 5-second lock timer
+          cp.beigeImmunityTimer = 17.0; // 5s lock + 12s post-unlock cooldown
+
+          if (beigeWorker) {
+            beigeWorker.actionCooldown = 11.5 + Math.random() * 2.5;
+            beigeWorker.state = 'COOLDOWN';
+          }
+
+          AudioEngine.playBeigeInterference();
+          addRingEffect(cp.gx + 0.5, cp.gy + 0.5, '#ff3333');
+          addFloatText(cp.gx + 0.5, cp.gy + 0.5, t('ftLocked5s'), '#ff5555');
+          showBanner(t('bannerBeigeLocked', { id: cp.id }), 2.4);
+        }
+
+        function captureBlueWorker(worker, cp, reasonKey, beigeWorker) {
+          worker.team = 'BEIGE';
+          worker.state = 'COOLDOWN';
+          worker.actionCooldown = 12.0;
+          worker.targetCpId = null;
+          worker.recoveredFresh = false;
+          worker.path = [];
+
+          if (beigeWorker) {
+            beigeWorker.actionCooldown = 12.0 + Math.random() * 2.0;
+            beigeWorker.state = 'COOLDOWN';
+          }
+
+          if (cp) {
+            cp.assignedWorkerId = null;
+            cp.state = 'RED_IDLE';
+            cp.progress = 0;
+            cp.workElapsed = 0;
+            cp.readyWaitTimer = 0;
+            cp.orangeAlerted = false;
+            cp.beigeImmunityTimer = 12.0;
+          }
+
+          state.captureCount++;
+          AudioEngine.playWorkerCaptured();
+          addRingEffect(worker.gx, worker.gy, '#d6b485');
+          addFloatText(worker.gx, worker.gy, t('ftCaptured'), '#d6b485');
+          showBanner(t('bannerCapturedHint', { reason: t(reasonKey) }), 3.4);
+        }
+
+        /* =========================================================================
+           7. ISOMETRIC RENDERER (2.5D)
+           ========================================================================= */
+        function getCheckpointLedColor(cp) {
+          const hall = HALLS[state.hallIndex];
+          if (cp.state === 'GREEN') return '#1fd16a';
+          if ((cp.state === 'WORKING' || cp.state === 'READY') && cp.workElapsed >= hall.baseTimeLimit) {
+            return '#ff9900';
+          }
+          return '#ff3333';
+        }
+
+        function drawIsoBox(gx, gy, gw, gh, heightPx, colors) {
+          const p0 = isoToScreen(gx, gy); // top corner
+          const p1 = isoToScreen(gx + gw, gy); // right corner
+          const p2 = isoToScreen(gx + gw, gy + gh); // bottom corner
+          const p3 = isoToScreen(gx, gy + gh); // left corner
+
+          // Soft floor shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+          ctx.beginPath();
+          ctx.moveTo(p3.x - 4, p3.y + 4);
+          ctx.lineTo(p2.x + 2, p2.y + 6);
+          ctx.lineTo(p1.x + 6, p1.y + 4);
+          ctx.lineTo(p0.x, p0.y + 2);
+          ctx.closePath();
+          ctx.fill();
+
+          // Left face (p3 -> p2)
+          ctx.fillStyle = colors.left;
+          ctx.beginPath();
+          ctx.moveTo(p3.x, p3.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.lineTo(p2.x, p2.y - heightPx);
+          ctx.lineTo(p3.x, p3.y - heightPx);
+          ctx.closePath();
+          ctx.fill();
+
+          // Right face (p2 -> p1)
+          ctx.fillStyle = colors.right;
+          ctx.beginPath();
+          ctx.moveTo(p2.x, p2.y);
+          ctx.lineTo(p1.x, p1.y);
+          ctx.lineTo(p1.x, p1.y - heightPx);
+          ctx.lineTo(p2.x, p2.y - heightPx);
+          ctx.closePath();
+          ctx.fill();
+
+          // Top face
+          ctx.fillStyle = colors.top;
+          ctx.beginPath();
+          ctx.moveTo(p0.x, p0.y - heightPx);
+          ctx.lineTo(p1.x, p1.y - heightPx);
+          ctx.lineTo(p2.x, p2.y - heightPx);
+          ctx.lineTo(p3.x, p3.y - heightPx);
+          ctx.closePath();
+          ctx.fill();
+
+          // Crisp edge highlights (#747F8F)
+          ctx.strokeStyle = colors.edge || '#747f8f';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(p0.x, p0.y - heightPx);
+          ctx.lineTo(p1.x, p1.y - heightPx);
+          ctx.lineTo(p2.x, p2.y - heightPx);
+          ctx.lineTo(p3.x, p3.y - heightPx);
+          ctx.closePath();
+          ctx.moveTo(p2.x, p2.y - heightPx);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.moveTo(p3.x, p3.y - heightPx);
+          ctx.lineTo(p3.x, p3.y);
+          ctx.moveTo(p1.x, p1.y - heightPx);
+          ctx.lineTo(p1.x, p1.y);
+          ctx.stroke();
+
+          return { p0, p1, p2, p3 };
+        }
+
+        function rebuildFloorCache(hall) {
+          floorCacheCanvas.width = Math.max(1, Math.floor(viewW * dpr));
+          floorCacheCanvas.height = Math.max(1, Math.floor(viewH * dpr));
+          const fc = floorCacheCtx;
+          fc.setTransform(dpr, 0, 0, dpr, 0, 0);
+          fc.clearRect(0, 0, viewW, viewH);
+
+          // Outer slate slab under-base
+          const c0 = isoToScreen(0, 0);
+          const c1 = isoToScreen(hall.cols, 0);
+          const c2 = isoToScreen(hall.cols, hall.rows);
+          const c3 = isoToScreen(0, hall.rows);
+
+          fc.fillStyle = '#181c22';
+          fc.beginPath();
+          fc.moveTo(c3.x, c3.y);
+          fc.lineTo(c2.x, c2.y);
+          fc.lineTo(c2.x, c2.y + 16);
+          fc.lineTo(c3.x, c3.y + 16);
+          fc.closePath();
+          fc.fill();
+
+          fc.fillStyle = '#12151a';
+          fc.beginPath();
+          fc.moveTo(c2.x, c2.y);
+          fc.lineTo(c1.x, c1.y);
+          fc.lineTo(c1.x, c1.y + 16);
+          fc.lineTo(c2.x, c2.y + 16);
+          fc.closePath();
+          fc.fill();
+
+          // Concrete floor tiles (#3A3F47 to #484F5A) with #5A6370 grid lines
+          const shades = ['#3a3f47', '#3f454e', '#444b55', '#484f5a'];
+          fc.strokeStyle = '#5a6370';
+          fc.lineWidth = 0.85;
+          for (let gy = 0; gy < hall.rows; gy++) {
+            for (let gx = 0; gx < hall.cols; gx++) {
+              const p0 = isoToScreen(gx, gy);
+              const p1 = isoToScreen(gx + 1, gy);
+              const p2 = isoToScreen(gx + 1, gy + 1);
+              const p3 = isoToScreen(gx, gy + 1);
+
+              fc.fillStyle = shades[(gx * 3 + gy * 5) % 4];
+              fc.beginPath();
+              fc.moveTo(p0.x, p0.y);
+              fc.lineTo(p1.x, p1.y);
+              fc.lineTo(p2.x, p2.y);
+              fc.lineTo(p3.x, p3.y);
+              fc.closePath();
+              fc.fill();
+              fc.stroke();
+            }
+          }
+
+          // Subtle walkway center lane marking
+          fc.save();
+          fc.strokeStyle = 'rgba(245, 166, 35, 0.22)';
+          fc.lineWidth = 2;
+          fc.setLineDash([8, 8]);
+          const laneA = isoToScreen(0.5, hall.rows * 0.5);
+          const laneB = isoToScreen(hall.cols - 0.5, hall.rows * 0.5);
+          fc.beginPath();
+          fc.moveTo(laneA.x, laneA.y);
+          fc.lineTo(laneB.x, laneB.y);
+          fc.stroke();
+          fc.restore();
+
+          // Low dark slate back walls (#1F2329) — low enough never to block view
+          const wallH = Math.max(14, tileH * 0.68);
+          fc.fillStyle = '#1f2329';
+          fc.beginPath();
+          fc.moveTo(c0.x, c0.y);
+          fc.lineTo(c3.x, c3.y);
+          fc.lineTo(c3.x, c3.y - wallH);
+          fc.lineTo(c0.x, c0.y - wallH);
+          fc.closePath();
+          fc.fill();
+          fc.strokeStyle = '#363d48';
+          fc.lineWidth = 1;
+          fc.stroke();
+
+          fc.fillStyle = '#252a32';
+          fc.beginPath();
+          fc.moveTo(c0.x, c0.y);
+          fc.lineTo(c1.x, c1.y);
+          fc.lineTo(c1.x, c1.y - wallH);
+          fc.lineTo(c0.x, c0.y - wallH);
+          fc.closePath();
+          fc.fill();
+          fc.strokeStyle = '#363d48';
+          fc.stroke();
+
+          // Entry Gate in upper-left wall (gx = 0) — clean architectural portal with hall tint, zero text
+          const ed = hall.entryDoor;
+          const edgeTint = hall.machineEdgeColor || '#747f8f';
+          const eA = isoToScreen(0, ed.gy - 0.65);
+          const eB = isoToScreen(0, ed.gy + 0.65);
+          const gateH = wallH + Math.max(18, tileH * 0.72);
+
+          const em0 = isoToScreen(0, ed.gy - 0.55);
+          const em1 = isoToScreen(0.75, ed.gy - 0.55);
+          const em2 = isoToScreen(0.75, ed.gy + 0.55);
+          const em3 = isoToScreen(0, ed.gy + 0.55);
+          fc.save();
+          fc.fillStyle = edgeTint;
+          fc.globalAlpha = 0.16;
+          fc.beginPath();
+          fc.moveTo(em0.x, em0.y);
+          fc.lineTo(em1.x, em1.y);
+          fc.lineTo(em2.x, em2.y);
+          fc.lineTo(em3.x, em3.y);
+          fc.closePath();
+          fc.fill();
+          fc.restore();
+
+          fc.strokeStyle = edgeTint;
+          fc.lineWidth = 1.4;
+          fc.beginPath();
+          fc.moveTo(em0.x, em0.y);
+          fc.lineTo(em1.x, em1.y);
+          fc.lineTo(em2.x, em2.y);
+          fc.lineTo(em3.x, em3.y);
+          fc.closePath();
+          fc.stroke();
+
+          fc.fillStyle = '#0f1318';
+          fc.beginPath();
+          fc.moveTo(eA.x, eA.y);
+          fc.lineTo(eB.x, eB.y);
+          fc.lineTo(eB.x, eB.y - gateH);
+          fc.lineTo(eA.x, eA.y - gateH);
+          fc.closePath();
+          fc.fill();
+          fc.strokeStyle = edgeTint;
+          fc.lineWidth = 2.2;
+          fc.stroke();
+
+          floorCacheHallId = hall.id;
+          floorCacheW = viewW;
+          floorCacheH = viewH;
+          floorCacheDpr = dpr;
+        }
+
+        function drawFloorAndWalls(hall) {
+          if (
+            floorCacheHallId !== hall.id ||
+            floorCacheW !== viewW ||
+            floorCacheH !== viewH ||
+            floorCacheDpr !== dpr
+          ) {
+            rebuildFloorCache(hall);
+          }
+          ctx.drawImage(floorCacheCanvas, 0, 0, viewW, viewH);
+
+          // Inspection pads in front of checkpoints (dynamic LED border)
+          for (const cp of state.checkpoints) {
+            const padCenter = isoToScreen(cp.standGx, cp.standGy);
+            const led = getCheckpointLedColor(cp);
+            ctx.save();
+            ctx.translate(padCenter.x, padCenter.y);
+            ctx.scale(1, 0.5);
+            ctx.beginPath();
+            ctx.arc(0, 0, tileW * 0.28, 0, Math.PI * 2);
+            ctx.fillStyle = cp.state === 'LOCKED' ? 'rgba(255, 51, 51, 0.18)' : 'rgba(22, 25, 30, 0.45)';
+            ctx.fill();
+            ctx.lineWidth = 1.6;
+            ctx.strokeStyle = led;
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Exit threshold floor pad in lower-right area
+          const edgeTint = hall.machineEdgeColor || '#747f8f';
+          const xd = hall.exitDoor;
+          const xm0 = isoToScreen(xd.gx - 0.75, xd.gy - 0.6);
+          const xm1 = isoToScreen(xd.gx, xd.gy - 0.6);
+          const xm2 = isoToScreen(xd.gx, xd.gy + 0.6);
+          const xm3 = isoToScreen(xd.gx - 0.75, xd.gy + 0.6);
+          const exitActive = state.mode === 'HALL_EXIT';
+          ctx.save();
+          if (exitActive) {
+            ctx.fillStyle = 'rgba(31, 209, 106, 0.28)';
+          } else {
+            ctx.fillStyle = edgeTint;
+            ctx.globalAlpha = 0.16;
+          }
+          ctx.beginPath();
+          ctx.moveTo(xm0.x, xm0.y);
+          ctx.lineTo(xm1.x, xm1.y);
+          ctx.lineTo(xm2.x, xm2.y);
+          ctx.lineTo(xm3.x, xm3.y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+          ctx.strokeStyle = exitActive ? '#1fd16a' : edgeTint;
+          ctx.lineWidth = exitActive ? 2 : 1.4;
+          ctx.beginPath();
+          ctx.moveTo(xm0.x, xm0.y);
+          ctx.lineTo(xm1.x, xm1.y);
+          ctx.lineTo(xm2.x, xm2.y);
+          ctx.lineTo(xm3.x, xm3.y);
+          ctx.closePath();
+          ctx.stroke();
+
+          // Click destination reticle
+          if (state.piotr.path.length > 0 && state.mode === 'PLAYING') {
+            const dest = state.piotr.path[state.piotr.path.length - 1];
+            const ds = isoToScreen(dest.gx, dest.gy);
+            ctx.save();
+            ctx.translate(ds.x, ds.y);
+            ctx.scale(1, 0.5);
+            ctx.strokeStyle = 'rgba(77, 166, 255, 0.75)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, tileW * 0.22, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        function drawExitGate(hall, timeSec) {
+          const xd = hall.exitDoor;
+          const edgeTint = hall.machineEdgeColor || '#747f8f';
+          const exitActive = state.mode === 'HALL_EXIT';
+          const pA = isoToScreen(xd.gx, xd.gy - 0.68);
+          const pB = isoToScreen(xd.gx, xd.gy + 0.68);
+          const gateH = Math.max(28, tileH * 1.28);
+
+          // Left & right steel pillars + top lintel in lower-right perimeter
+          ctx.strokeStyle = edgeTint;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(pA.x, pA.y);
+          ctx.lineTo(pA.x, pA.y - gateH);
+          ctx.moveTo(pB.x, pB.y);
+          ctx.lineTo(pB.x, pB.y - gateH);
+          ctx.stroke();
+
+          // Top portal lintel
+          ctx.fillStyle = '#262a30';
+          ctx.strokeStyle = exitActive ? '#1fd16a' : edgeTint;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(pA.x, pA.y - gateH);
+          ctx.lineTo(pB.x, pB.y - gateH);
+          ctx.lineTo(pB.x, pB.y - gateH - 9);
+          ctx.lineTo(pA.x, pA.y - gateH - 9);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Subtle portal lintel glow without signboard badge or text
+          if (exitActive) {
+            const midX = (pA.x + pB.x) * 0.5;
+            const midY = (pA.y + pB.y) * 0.5 - gateH - 5;
+            const pulse = 9 + Math.sin(timeSec * 8) * 3;
+            const g = ctx.createRadialGradient(midX, midY, 1, midX, midY, pulse);
+            g.addColorStop(0, 'rgba(31, 209, 106, 0.85)');
+            g.addColorStop(1, 'rgba(31, 209, 106, 0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(midX, midY, pulse, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        function drawMachine(m) {
+          const hall = HALLS[state.hallIndex];
+          const edgeColor = hall.machineEdgeColor || '#747f8f';
+          const h = (m.height / 64) * tileW;
+          const pts = drawIsoBox(m.gx, m.gy, m.w, m.h, h, {
+            left: '#262a30',
+            right: '#353b44',
+            top: '#525a65',
+            edge: edgeColor,
+          });
+
+          // Industrial cooling louvers on right face tinted gently per hall
+          ctx.strokeStyle = edgeColor;
+          ctx.globalAlpha = 0.38;
+          ctx.lineWidth = 1;
+          for (let k = 1; k <= 3; k++) {
+            const yOff = (h * 0.22) * k;
+            ctx.beginPath();
+            ctx.moveTo(pts.p2.x + 6, pts.p2.y - yOff - 3);
+            ctx.lineTo(pts.p1.x - 6, pts.p1.y - yOff - 3);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+
+          // Top plate label (using cached BODY_FONT_FAMILY)
+          const cx = (pts.p0.x + pts.p2.x) * 0.5;
+          const cy = (pts.p0.y + pts.p2.y) * 0.5 - h;
+          ctx.fillStyle = 'rgba(226, 232, 240, 0.55)';
+          ctx.font = `700 ${Math.max(8, Math.round(tileW * 0.14))}px ${BODY_FONT_FAMILY}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const mLabel = (m.labels && m.labels[currentLang]) || m.label;
+          ctx.fillText(mLabel, cx, cy);
+        }
+
+        function drawCheckpoint(cp, timeSec) {
+          const h = tileW * 0.78;
+          const led = getCheckpointLedColor(cp);
+          const pts = drawIsoBox(cp.gx + 0.14, cp.gy + 0.14, 0.72, 0.72, h, {
+            left: '#262a30',
+            right: '#323841',
+            top: '#525a65',
+            edge: '#747f8f',
+          });
+
+          // Front control door detail + gauge
+          const doorX = (pts.p2.x + pts.p3.x) * 0.5;
+          const doorY = (pts.p2.y + pts.p3.y) * 0.5 - h * 0.5;
+          ctx.fillStyle = '#191d22';
+          ctx.beginPath();
+          ctx.arc(doorX, doorY - 2, Math.max(2.5, tileW * 0.06), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = led;
+          ctx.beginPath();
+          ctx.arc(doorX, doorY + tileW * 0.11, Math.max(2, tileW * 0.045), 0, Math.PI * 2);
+          ctx.fill();
+
+          // LED Beacon Pole on top
+          const topX = (pts.p0.x + pts.p2.x) * 0.5;
+          const topY = (pts.p0.y + pts.p2.y) * 0.5 - h;
+          const poleH = tileW * 0.24;
+
+          ctx.strokeStyle = '#747f8f';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(topX, topY);
+          ctx.lineTo(topX, topY - poleH);
+          ctx.stroke();
+
+          // Glowing LED Dome
+          const pulse = cp.state === 'READY' ? 1 + Math.sin(timeSec * 8) * 0.22 : 1;
+          const glowR = Math.max(8, tileW * 0.22) * pulse;
+          const grad = ctx.createRadialGradient(topX, topY - poleH, 1, topX, topY - poleH, glowR);
+          grad.addColorStop(0, led);
+          grad.addColorStop(0.45, led + '88');
+          grad.addColorStop(1, led + '00');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(topX, topY - poleH, glowR, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = led;
+          ctx.beginPath();
+          ctx.arc(topX, topY - poleH, Math.max(4, tileW * 0.085), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // QR scan beam flash
+          if (cp.scanFlash > 0) {
+            ctx.save();
+            ctx.strokeStyle = `rgba(77, 166, 255, ${cp.scanFlash})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(topX, topY, tileW * (0.45 - cp.scanFlash * 0.25), 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Station ID label (with subtle dark shadow for crisp contrast)
+          ctx.font = `700 ${Math.max(9, Math.round(tileW * 0.15))}px ui-monospace, monospace`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(15, 19, 24, 0.85)';
+          ctx.fillText(cp.id, topX + 1, pts.p2.y + 13);
+          ctx.fillStyle = '#e2e8f0';
+          ctx.fillText(cp.id, topX, pts.p2.y + 12);
+
+          // Progress Bar (0-100%) above active or ready station (#2CEAA3 over #16191E)
+          if (cp.state === 'WORKING' || cp.state === 'READY') {
+            const bw = Math.max(48, tileW * 0.88);
+            const bh = 10;
+            const bx = topX - bw * 0.5;
+            const by = topY - poleH - 22;
+
+            ctx.fillStyle = '#16191e';
+            ctx.fillRect(bx, by, bw, bh);
+            ctx.fillStyle = cp.state === 'READY' ? '#1fd16a' : '#2ceaa3';
+            ctx.fillRect(bx + 1, by + 1, Math.max(0, (bw - 2) * (cp.progress / 100)), bh - 2);
+            ctx.strokeStyle = '#747f8f';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(bx, by, bw, bh);
+
+            ctx.fillStyle = cp.state === 'READY' && cp.readyWaitTimer >= 10.0 ? '#ff9900' : '#f8fafc';
+            ctx.font = '700 10px ui-monospace, monospace';
+            ctx.textAlign = 'center';
+            let label = `${Math.floor(cp.progress)}%`;
+            if (cp.state === 'READY') {
+              const graceLeft = Math.ceil(10 - cp.readyWaitTimer);
+              label = graceLeft > 0 ? t('cpReadyTimer', { sec: graceLeft }) : t('cpFinishNow');
+            }
+            ctx.fillText(label, topX, by - 5);
+          } else if (cp.state === 'LOCKED') {
+            const by = topY - poleH - 18;
+            ctx.fillStyle = 'rgba(22, 25, 30, 0.92)';
+            ctx.fillRect(topX - 36, by - 9, 72, 16);
+            ctx.strokeStyle = '#ff3333';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(topX - 36, by - 9, 72, 16);
+            ctx.fillStyle = '#fca5a5';
+            ctx.font = '700 10px ui-monospace, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`🔒 ${Math.ceil(cp.lockTimer)}s`, topX, by + 3);
+          }
+        }
+
+        function drawCharacter(opts) {
+          const {
+            gx, gy, team, isForeman, label, stateStr,
+            walkPhase, facing, frozenTimer, timeSec, pendingAlert
+          } = opts;
+          const pos = isoToScreen(gx, gy);
+          const scale = Math.max(0.62, tileW / 62);
+
+          ctx.save();
+          ctx.translate(pos.x, pos.y);
+
+          // Highlight Piotr's base with bright cyan/blue ring (#4DA6FF)
+          if (isForeman && team === 'BLUE') {
+            ctx.save();
+            ctx.scale(1, 0.5);
+            const ringR = 24 * scale;
+            ctx.strokeStyle = '#4da6ff';
+            ctx.lineWidth = 2.6;
+            ctx.beginPath();
+            ctx.arc(0, 0, ringR, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(77, 166, 255, 0.16)';
+            ctx.fill();
+
+            // Rotating tick marks
+            const rot = timeSec * 1.8;
+            for (let k = 0; k < 4; k++) {
+              const a = rot + k * (Math.PI * 0.5);
+              ctx.beginPath();
+              ctx.moveTo(Math.cos(a) * (ringR - 3), Math.sin(a) * (ringR - 3));
+              ctx.lineTo(Math.cos(a) * (ringR + 5), Math.sin(a) * (ringR + 5));
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+
+          // Shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.36)';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 12 * scale, 6 * scale, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          const stride = Math.sin(walkPhase || 0) * 3.5 * scale;
+          const bodyBob = Math.abs(Math.cos(walkPhase || 0)) * 1.5 * scale;
+          const bodyColor = team === 'BLUE' ? '#1e6fd9' : '#d6b485';
+          const bodyDark = team === 'BLUE' ? '#144b96' : '#9e7e54';
+          const bodyHi = team === 'BLUE' ? '#4a94f5' : '#e8cca3';
+          const charH = (isForeman ? 34 : 30) * scale;
+
+          ctx.translate(0, -bodyBob);
+
+          // Legs
+          ctx.strokeStyle = bodyDark;
+          ctx.lineWidth = 4.2 * scale;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(-4 * scale, -12 * scale);
+          ctx.lineTo(-4 * scale - stride * 0.5, -2 * scale);
+          ctx.moveTo(4 * scale, -12 * scale);
+          ctx.lineTo(4 * scale + stride * 0.5, -2 * scale);
+          ctx.stroke();
+
+          // Torso
+          ctx.fillStyle = bodyColor;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(-8.5 * scale, -charH + 9 * scale, 17 * scale, 17 * scale, 4 * scale);
+          } else {
+            ctx.rect(-8.5 * scale, -charH + 9 * scale, 17 * scale, 17 * scale);
+          }
+          ctx.fill();
+          ctx.strokeStyle = bodyDark;
+          ctx.lineWidth = 1.2 * scale;
+          ctx.stroke();
+
+          // Foreman vest stripe or worker detail
+          if (isForeman) {
+            ctx.fillStyle = team === 'BLUE' ? '#4da6ff' : '#f5a623';
+            ctx.fillRect(-6 * scale, -charH + 13 * scale, 12 * scale, 3 * scale);
+          }
+
+          // Company logo mark: distinct small RED DOT (#FF2E3B) on Blue Team
+          if (team === 'BLUE') {
+            ctx.fillStyle = '#ff2e3b';
+            ctx.beginPath();
+            ctx.arc(3.5 * scale * (facing || 1), -charH + 17 * scale, 2.3 * scale, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Arms (pose reflects state!)
+          ctx.strokeStyle = bodyHi;
+          ctx.lineWidth = 3.2 * scale;
+          if (stateStr === 'READY') {
+            // Raised waving arm signalling "ready for inspection!"
+            const wave = Math.sin(timeSec * 9) * 3.5 * scale;
+            ctx.beginPath();
+            ctx.moveTo(-8 * scale, -charH + 13 * scale);
+            ctx.lineTo(-14 * scale, -charH + 2 * scale + wave);
+            ctx.moveTo(8 * scale, -charH + 13 * scale);
+            ctx.lineTo(13 * scale, -charH + 19 * scale);
+            ctx.stroke();
+            // Green inspection clipboard in raised hand
+            ctx.fillStyle = '#2ceaa3';
+            ctx.fillRect(-17 * scale, -charH - 3 * scale + wave, 6 * scale, 7 * scale);
+          } else if (stateStr === 'WORKING' || stateStr === 'INTERFERING') {
+            const wrench = Math.sin(timeSec * 12) * 3 * scale;
+            ctx.beginPath();
+            ctx.moveTo(8 * scale * (facing || 1), -charH + 14 * scale);
+            ctx.lineTo(15 * scale * (facing || 1), -charH + 12 * scale + wrench);
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(-8 * scale, -charH + 13 * scale);
+            ctx.lineTo(-11 * scale, -charH + 21 * scale + stride * 0.4);
+            ctx.moveTo(8 * scale, -charH + 13 * scale);
+            ctx.lineTo(11 * scale, -charH + 21 * scale - stride * 0.4);
+            ctx.stroke();
+          }
+
+          // Head
+          ctx.fillStyle = '#f1c7a5';
+          ctx.beginPath();
+          ctx.arc(0, -charH + 4 * scale, 5.8 * scale, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Hard Hat
+          ctx.fillStyle = isForeman && team === 'BLUE' ? '#f8fafc' : bodyColor;
+          ctx.beginPath();
+          ctx.arc(0, -charH + 2.5 * scale, 6.6 * scale, Math.PI, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = bodyDark;
+          ctx.lineWidth = 1.2 * scale;
+          ctx.stroke();
+
+          // Hard hat brim
+          ctx.fillStyle = isForeman && team === 'BLUE' ? '#4da6ff' : bodyHi;
+          ctx.fillRect(-7.5 * scale, -charH + 1.8 * scale, 15 * scale, 2.2 * scale);
+
+          // Frozen electric shield on Janusz or crisp character readiness/name label
+          if (frozenTimer && frozenTimer > 0) {
+            ctx.strokeStyle = '#4da6ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, -charH * 0.5, 20 * scale, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.font = '800 11px ui-monospace, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#0f1318';
+            ctx.fillText(`⚡ ${frozenTimer.toFixed(1)}s`, 1, -charH - 11 * scale);
+            ctx.fillStyle = '#bae6fd';
+            ctx.fillText(`⚡ ${frozenTimer.toFixed(1)}s`, 0, -charH - 12 * scale);
+          } else if (stateStr === 'READY') {
+            const readyText = t('charReady');
+            const labelY = -charH - 12 * scale;
+            ctx.font = '800 10px ui-monospace, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#0f1318';
+            ctx.fillText(readyText, 1, labelY + 1);
+            ctx.fillStyle = '#2ceaa3';
+            ctx.fillText(readyText, 0, labelY);
+          } else if (label) {
+            const labelY = -charH - 10 * scale;
+            ctx.font = '800 10px ui-monospace, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#0f1318';
+            ctx.fillText(label, 1, labelY + 1);
+            ctx.fillStyle = team === 'BLUE' ? '#bae6fd' : '#fde68a';
+            ctx.fillText(label, 0, labelY);
+          }
+
+          if (pendingAlert) {
+            ctx.fillStyle = '#f5a623';
+            ctx.font = '700 10px sans-serif';
+            ctx.textAlign = 'center';
+            const alertY = Math.max(-pos.y + 88, -charH - 23 * scale);
+            ctx.fillText(t('charAssignWorker'), 0, alertY);
+          }
+
+          ctx.restore();
+        }
+
+        function drawEffects() {
+          for (const ef of state.effects) {
+            const t = ef.life / ef.maxLife;
+            if (ef.type === 'RING') {
+              const p = isoToScreen(ef.gx, ef.gy);
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.scale(1, 0.5);
+              ctx.strokeStyle = ef.color;
+              ctx.globalAlpha = t;
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.arc(0, 0, tileW * (0.3 + (1 - t) * 0.75), 0, Math.PI * 2);
+              ctx.stroke();
+              ctx.restore();
+            } else if (ef.type === 'ARC') {
+              const a = isoToScreen(ef.ax, ef.ay);
+              const b = isoToScreen(ef.bx, ef.by);
+              ctx.save();
+              ctx.globalAlpha = t;
+              ctx.strokeStyle = Math.random() > 0.4 ? '#4da6ff' : '#ffffff';
+              ctx.lineWidth = 2.8;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y - 18);
+              const segs = 6;
+              for (let s = 1; s < segs; s++) {
+                const f = s / segs;
+                const jx = a.x + (b.x - a.x) * f + (Math.random() - 0.5) * 26;
+                const jy = (a.y - 18) + (b.y - a.y) * f + (Math.random() - 0.5) * 18;
+                ctx.lineTo(jx, jy);
+              }
+              ctx.lineTo(b.x, b.y - 18);
+              ctx.stroke();
+              ctx.restore();
+            }
+          }
+
+          for (const ft of state.floatTexts) {
+            const p = isoToScreen(ft.gx, ft.gy);
+            const alpha = Math.min(1, ft.life / 0.5);
+            const rise = (1 - ft.life / ft.maxLife) * 28;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.font = '800 12px "Segoe UI", system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#0f1318';
+            ctx.fillText(ft.text, p.x + 1, p.y - 44 - rise + 1);
+            ctx.fillStyle = ft.color;
+            ctx.fillText(ft.text, p.x, p.y - 44 - rise);
+            ctx.restore();
+          }
+        }
+
+        function render(timeSec) {
+          const hall = HALLS[state.hallIndex];
+          ctx.clearRect(0, 0, viewW, viewH);
+
+          ctx.save();
+          if (state.cameraGlide > 0) {
+            const ease = state.cameraGlide * state.cameraGlide;
+            ctx.translate(ease * 38, ease * 20);
+            ctx.globalAlpha = Math.max(0.2, 1 - ease * 0.65);
+          }
+          if (state.screenShake > 0) {
+            const mag = state.screenShake * 18;
+            ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
+          }
+
+          drawFloorAndWalls(hall);
+
+          // Collect all drawable 2.5D objects and depth-sort by isometric depth (gx + gy)
+          const drawables = [];
+
+          for (const m of state.machines) {
+            drawables.push({
+              depth: m.gx + m.w * 0.5 + (m.gy + m.h * 0.5),
+              draw: () => drawMachine(m),
+            });
+          }
+
+          for (const cp of state.checkpoints) {
+            drawables.push({
+              depth: cp.gx + 0.5 + (cp.gy + 0.5),
+              draw: () => drawCheckpoint(cp, timeSec),
+            });
+          }
+
+          if (!state.piotr.exited) {
+            drawables.push({
+              depth: state.piotr.gx + state.piotr.gy,
+              draw: () => drawCharacter({
+                gx: state.piotr.gx,
+                gy: state.piotr.gy,
+                team: 'BLUE',
+                isForeman: true,
+                label: 'PIOTR',
+                stateStr: 'FOREMAN',
+                walkPhase: state.piotr.walkPhase,
+                facing: state.piotr.facing,
+                timeSec,
+                pendingAlert: state.piotr.pendingRecoveredAssignment,
+              }),
+            });
+          }
+
+          drawables.push({
+            depth: state.janusz.gx + state.janusz.gy,
+            draw: () => drawCharacter({
+              gx: state.janusz.gx,
+              gy: state.janusz.gy,
+              team: 'BEIGE',
+              isForeman: true,
+              label: 'JANUSZ',
+              stateStr: 'FOREMAN',
+              walkPhase: state.janusz.walkPhase,
+              facing: state.janusz.facing,
+              frozenTimer: state.janusz.frozenTimer,
+              timeSec,
+            }),
+          });
+
+          for (const w of state.workers) {
+            if (w.exited) continue;
+            drawables.push({
+              depth: w.gx + w.gy,
+              draw: () => drawCharacter({
+                gx: w.gx,
+                gy: w.gy,
+                team: w.team,
+                isForeman: false,
+                label: '',
+                stateStr: w.state,
+                walkPhase: w.walkPhase,
+                facing: w.facing,
+                timeSec,
+              }),
+            });
+          }
+
+          drawables.push({
+            depth: hall.exitDoor.gx + hall.exitDoor.gy,
+            draw: () => drawExitGate(hall, timeSec),
+          });
+
+          drawables.sort((a, b) => a.depth - b.depth);
+          for (const d of drawables) d.draw();
+
+          drawEffects();
+          ctx.restore();
+        }
+
+        /* =========================================================================
+           8. INPUT CONTROLS (KEYBOARD, MOUSE/TAP ON CANVAS, VIRTUAL JOYSTICK)
+           ========================================================================= */
+        const keysDown = new Set();
+        const joystick = { active: false, pointerId: null, ix: 0, iy: 0 };
+
+        function getMoveInputVector() {
+          if (joystick.active) {
+            const mag = Math.hypot(joystick.ix, joystick.iy);
+            return { ix: joystick.ix, iy: joystick.iy, mag };
+          }
+          let ix = 0;
+          let iy = 0;
+          if (keysDown.has('KeyW') || keysDown.has('ArrowUp')) iy -= 1;
+          if (keysDown.has('KeyS') || keysDown.has('ArrowDown')) iy += 1;
+          if (keysDown.has('KeyA') || keysDown.has('ArrowLeft')) ix -= 1;
+          if (keysDown.has('KeyD') || keysDown.has('ArrowRight')) ix += 1;
+          const mag = Math.hypot(ix, iy);
+          if (mag > 1) {
+            ix /= mag;
+            iy /= mag;
+          }
+          return { ix, iy, mag: Math.min(1, mag) };
+        }
+
+        window.addEventListener('keydown', (e) => {
+          AudioEngine.unlock();
+          if (e.code === 'Escape' && installModal && !installModal.classList.contains('hidden')) {
+            installModal.classList.add('hidden');
+            return;
+          }
+          if (installModal && !installModal.classList.contains('hidden')) return;
+          if (state.mode === 'INTRO') {
+            if (e.code === 'Space' || e.code === 'Enter') {
+              e.preventDefault();
+              skipIntroAndStart();
+            }
+            return;
+          }
+          if (state.mode === 'HALL_TRANSITION') {
+            if (e.code === 'Space' || e.code === 'Enter') {
+              e.preventDefault();
+              finishHallTransition();
+            }
+            return;
+          }
+          if (state.mode === 'HALL_ENTRY') {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+              e.preventDefault();
+            }
+            if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+              state.mode = 'PLAYING';
+              state.piotr.path = [];
+              keysDown.add(e.code);
+              markActivity();
+            }
+            return;
+          }
+          if (state.mode === 'PLAYING') {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+              e.preventDefault();
+            }
+            keysDown.add(e.code);
+            markActivity();
+            if (e.code === 'Space' || e.code === 'KeyE') {
+              performPrimaryAction();
+            }
+          }
+        });
+
+        window.addEventListener('keyup', (e) => {
+          keysDown.delete(e.code);
+        });
+
+        // Canvas click / tap-to-move or contextual station/Janusz interaction
+        canvas.addEventListener('pointerdown', (e) => {
+          AudioEngine.unlock();
+          if (state.mode === 'HALL_ENTRY') {
+            state.mode = 'PLAYING';
+            state.piotr.path = [];
+          }
+          if (state.mode !== 'PLAYING') return;
+          markActivity();
+          const rect = canvas.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+
+          // 1. Finger-friendly nearest-target selection (Janusz vs Checkpoints)
+          const tapRadius = Math.max(36, tileW * 0.62);
+          let bestTarget = null;
+          let bestTargetDist = tapRadius;
+
+          const jScreen = isoToScreen(state.janusz.gx, state.janusz.gy);
+          const jDist = Math.hypot(sx - jScreen.x, sy - (jScreen.y - 18));
+          if (jDist <= Math.max(30, tileW * 0.5) && jDist < bestTargetDist) {
+            bestTargetDist = jDist;
+            bestTarget = { type: 'JANUSZ' };
+          }
+
+          for (const cp of state.checkpoints) {
+            const cScreen = isoToScreen(cp.gx + 0.5, cp.gy + 0.5);
+            const cDist = Math.hypot(sx - cScreen.x, sy - (cScreen.y - tileW * 0.36));
+            if (cDist <= tapRadius && cDist < bestTargetDist) {
+              bestTargetDist = cDist;
+              bestTarget = { type: 'CHECKPOINT', cp };
+            }
+          }
+
+          if (bestTarget) {
+            if (bestTarget.type === 'JANUSZ') {
+              state.piotr.intent = { type: 'JANUSZ' };
+              state.piotr.path = findPath(state.piotr.gx, state.piotr.gy, state.janusz.gx, state.janusz.gy);
+            } else {
+              const cp = bestTarget.cp;
+              if (dist(state.piotr.gx, state.piotr.gy, cp.standGx, cp.standGy) <= 1.35) {
+                if (cp.state === 'READY') triggerFinishCheckpoint(cp);
+                else if (cp.state === 'RED_IDLE') triggerStartCheckpoint(cp);
+              } else {
+                state.piotr.intent = { type: 'CHECKPOINT', targetId: cp.id };
+                state.piotr.path = findPath(state.piotr.gx, state.piotr.gy, cp.standGx, cp.standGy);
+              }
+            }
+            return;
+          }
+
+          // 3. Otherwise walk to floor tile
+          const iso = screenToIso(sx, sy);
+          const hall = HALLS[state.hallIndex];
+          const tx = Math.max(0.4, Math.min(hall.cols - 0.4, iso.gx));
+          const ty = Math.max(0.4, Math.min(hall.rows - 0.4, iso.gy));
+          state.piotr.intent = null;
+          state.piotr.path = findPath(state.piotr.gx, state.piotr.gy, tx, ty);
+        });
+
+        // Virtual Joystick events
+        const joyBase = document.getElementById('joystick-base');
+        const joyKnob = document.getElementById('joystick-knob');
+
+        function updateJoystickFromPointer(clientX, clientY) {
+          const rect = joyBase.getBoundingClientRect();
+          const cx = rect.left + rect.width * 0.5;
+          const cy = rect.top + rect.height * 0.5;
+          const maxR = rect.width * 0.36;
+          let dx = clientX - cx;
+          let dy = clientY - cy;
+          const d = Math.hypot(dx, dy);
+          if (d > maxR) {
+            dx = (dx / d) * maxR;
+            dy = (dy / d) * maxR;
+          }
+          joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+          joystick.ix = dx / maxR;
+          joystick.iy = dy / maxR;
+        }
+
+        joyBase.addEventListener('pointerdown', (e) => {
+          AudioEngine.unlock();
+          e.stopPropagation();
+          if (state.mode === 'HALL_ENTRY') {
+            state.mode = 'PLAYING';
+            state.piotr.path = [];
+          }
+          markActivity();
+          joyBase.setPointerCapture(e.pointerId);
+          joystick.active = true;
+          joystick.pointerId = e.pointerId;
+          updateJoystickFromPointer(e.clientX, e.clientY);
+        });
+
+        joyBase.addEventListener('pointermove', (e) => {
+          if (!joystick.active || e.pointerId !== joystick.pointerId) return;
+          updateJoystickFromPointer(e.clientX, e.clientY);
+        });
+
+        function resetJoystick(e) {
+          if (e && e.pointerId !== joystick.pointerId) return;
+          joystick.active = false;
+          joystick.pointerId = null;
+          joystick.ix = 0;
+          joystick.iy = 0;
+          joyKnob.style.transform = 'translate(0px, 0px)';
+        }
+
+        joyBase.addEventListener('pointerup', resetJoystick);
+        joyBase.addEventListener('pointercancel', resetJoystick);
+
+        document.getElementById('primary-action-btn').addEventListener('click', () => {
+          AudioEngine.unlock();
+          performPrimaryAction();
+        });
+
+        /* =========================================================================
+           9. HUD, MUTE, HALL TABS & INTRO / SUMMARY FLOW
+           ========================================================================= */
+        const elGreen = document.getElementById('stat-green');
+        const elOrange = document.getElementById('stat-orange');
+        const elRed = document.getElementById('stat-red');
+        const elWorkers = document.getElementById('stat-workers');
+        const elTimer = document.getElementById('stat-timer');
+        const elActionBtn = document.getElementById('primary-action-btn');
+        const elContextHint = document.getElementById('context-hint');
+
+        function formatTime(sec) {
+          const s = Math.max(0, Math.floor(sec));
+          const m = Math.floor(s / 60);
+          const r = s % 60;
+          return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+        }
+
+        function updateHallTabs() {
+          const shortLabels = (I18N[currentLang] || I18N.pl).hallShort;
+          document.querySelectorAll('.hall-tab').forEach((btn) => {
+            const idx = Number(btn.dataset.hall);
+            btn.classList.toggle('active', idx === state.hallIndex);
+            if (shortLabels[idx]) btn.textContent = shortLabels[idx];
+          });
+        }
+
+        function updateHUD() {
+          let g = 0, o = 0, r = 0;
+          for (const cp of state.checkpoints) {
+            const led = getCheckpointLedColor(cp);
+            if (led === '#1fd16a') g++;
+            else if (led === '#ff9900') o++;
+            else r++;
+          }
+          elGreen.textContent = String(g);
+          elOrange.textContent = String(o);
+          elRed.textContent = String(r);
+
+          const free = state.workers.filter((w) => w.team === 'BLUE' && w.state === 'FOLLOW').length;
+          const work = state.workers.filter((w) => w.team === 'BLUE' && (w.state === 'TO_STATION' || w.state === 'WORKING')).length;
+          const ready = state.workers.filter((w) => w.team === 'BLUE' && w.state === 'READY').length;
+          const captured = getCapturedWorkers().length;
+          elWorkers.textContent = t(viewW <= 600 ? 'crewShort' : 'crewFull', {
+            free, work, ready, cap: captured,
+          });
+          elTimer.textContent = formatTime(state.hallTimeLeft);
+          elTimer.classList.toggle('warn', state.hallTimeLeft <= 30 && state.hallTimeLeft > 10);
+          elTimer.classList.toggle('crit', state.hallTimeLeft <= 10);
+
+          // Contextual Action Button
+          const act = state.mode === 'PLAYING' ? getNearestInteractable() : null;
+          elActionBtn.classList.remove('mode-start', 'mode-finish', 'mode-voltage', 'mode-idle');
+          if (state.mode === 'HALL_EXIT') {
+            elActionBtn.classList.add('mode-finish');
+            elActionBtn.textContent = t('exitLabel');
+            elContextHint.textContent = t('hintExiting');
+          } else if (!act) {
+            elActionBtn.classList.add('mode-idle');
+            elActionBtn.textContent = t('btnKontakt');
+            elContextHint.textContent = state.piotr.pendingRecoveredAssignment
+              ? t('hintPendingAssign')
+              : t('hintApproach');
+          } else if (act.type === 'FINISH') {
+            elActionBtn.classList.add('mode-finish');
+            elActionBtn.textContent = t('btnFinish');
+            elContextHint.textContent = t('hintFinish', { id: act.cp.id });
+          } else if (act.type === 'START') {
+            elActionBtn.classList.add('mode-start');
+            elActionBtn.textContent = t('btnStart');
+            elContextHint.textContent = t('hintStart', { id: act.cp.id });
+          } else if (act.type === 'VOLTAGE_RECOVER' || act.type === 'VOLTAGE_STUN') {
+            elActionBtn.classList.add('mode-voltage');
+            elActionBtn.textContent = t('btnVoltage');
+            elContextHint.textContent = act.type === 'VOLTAGE_RECOVER'
+              ? t('hintVoltageRecover')
+              : t('hintVoltageStun');
+          } else {
+            elActionBtn.classList.add('mode-idle');
+            elActionBtn.textContent = t('btnKontakt');
+            elContextHint.textContent = act.type === 'NEED_ASSIGN'
+              ? t('hintNeedAssign')
+              : t('hintNoWorker');
+          }
+        }
+
+        function updateMuteButtonText() {
+          const isMuted = AudioEngine.isMuted();
+          const label = t(isMuted ? 'muteOnTitle' : 'muteOffTitle');
+          muteBtn.title = label;
+          muteBtn.setAttribute('aria-label', label);
+          document.getElementById('mute-text').textContent = t('soundText');
+        }
+
+        function setLanguage(lang) {
+          if (!I18N[lang]) return;
+          currentLang = lang;
+          try {
+            localStorage.setItem('hv_leons_team_lang', lang);
+          } catch (_) {}
+
+          const dict = I18N[lang];
+          document.documentElement.lang = dict.htmlLang;
+          document.title = dict.pageTitle;
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) metaDesc.setAttribute('content', dict.metaDesc);
+
+          HALLS.forEach((h, i) => {
+            h.code = dict.hallCodes[i];
+            h.name = dict.hallNames[i];
+            h.leonDispatch = dict.hallDispatches[i];
+          });
+
+          document.querySelectorAll('.lang-tab').forEach((btn) => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+          });
+
+          canvas.setAttribute('aria-label', dict.canvasAria);
+          document.getElementById('hall-tabs-nav').setAttribute('aria-label', dict.hallTabsAria);
+          document.getElementById('lbl-boxes').textContent = dict.lblBoxes;
+          document.getElementById('lbl-crew').textContent = dict.lblCrew;
+          document.getElementById('install-text').textContent = dict.installText;
+          if (installBtn) {
+            installBtn.title = dict.installTitle;
+            installBtn.setAttribute('aria-label', dict.installTitle);
+          }
+          const restartBtn = document.getElementById('restart-hall-btn');
+          restartBtn.title = dict.restartTitle;
+          restartBtn.setAttribute('aria-label', dict.restartTitle);
+          const brandHomeBtn = document.getElementById('brand-home-btn');
+          if (brandHomeBtn) {
+            brandHomeBtn.title = dict.brandHomeTitle;
+            brandHomeBtn.setAttribute('aria-label', dict.brandHomeTitle);
+          }
+          document.getElementById('joystick-base').setAttribute('aria-label', dict.joystickAria);
+          document.getElementById('desktop-legend').innerHTML = dict.desktopLegend;
+
+          // Intro static texts
+          document.getElementById('intro-kicker-text').textContent = dict.introKicker;
+          document.getElementById('intro-subtitle').textContent = dict.introSubtitle;
+          document.getElementById('intro-skip-hint').textContent = dict.introSkipHint;
+          document.getElementById('intro-start-btn').textContent = dict.introStartBtn;
+          if (state.mode === 'INTRO') {
+            startAuthorTypewriter(false);
+          } else {
+            const creditEl = document.getElementById('author-credit-text');
+            if (creditEl) creditEl.textContent = dict.authorCredit;
+          }
+
+          // Transition static labels
+          document.getElementById('trans-lbl-green').textContent = dict.transLblGreen;
+          document.getElementById('trans-lbl-time').textContent = dict.transLblTime;
+          document.getElementById('trans-lbl-voltage').textContent = dict.transLblVoltage;
+          document.getElementById('trans-lbl-captures').textContent = dict.transLblCaptures;
+          document.getElementById('trans-speaker').textContent = dict.transSpeaker;
+          document.getElementById('trans-tap-prompt').textContent = dict.transTapPrompt;
+
+          // Summary static labels
+          document.getElementById('sum-lbl-time').textContent = dict.sumLblTime;
+          document.getElementById('sum-lbl-voltage').textContent = dict.sumLblVoltage;
+          document.getElementById('sum-lbl-captures').textContent = dict.sumLblCaptures;
+          document.getElementById('summary-replay-btn').textContent = dict.sumReplayBtn;
+
+          // Install guide modal
+          document.getElementById('inst-kicker').textContent = dict.instKicker;
+          document.getElementById('inst-title').textContent = dict.instTitle;
+          document.getElementById('inst-subtitle').textContent = dict.instSubtitle;
+          document.getElementById('inst-ios').innerHTML = dict.instIos;
+          document.getElementById('inst-android').innerHTML = dict.instAndroid;
+          document.getElementById('inst-close-btn').textContent = dict.instClose;
+
+          updateMuteButtonText();
+          updateHallTabs();
+          renderIntroBeat(state.introBeat);
+          if (state.mode === 'HALL_TRANSITION' && state.lastClearedStats) {
+            renderHallTransitionCard();
+          }
+          if (!summaryOverlay.classList.contains('hidden')) {
+            showSummaryModal(state.lastSummaryMode);
+          }
+          recomputeProjection();
+          updateHUD();
+        }
+
+        document.querySelectorAll('.lang-tab').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            AudioEngine.unlock();
+            setLanguage(btn.dataset.lang);
+          });
+        });
+
+        // Mute toggle
+        const muteBtn = document.getElementById('mute-btn');
+        const muteIcon = document.getElementById('mute-icon');
+        muteBtn.addEventListener('click', () => {
+          AudioEngine.unlock();
+          const next = !AudioEngine.isMuted();
+          AudioEngine.setMuted(next);
+          muteBtn.classList.toggle('muted', next);
+          muteIcon.textContent = next ? '🔇' : '🔊';
+          updateMuteButtonText();
+        });
+
+        // Hall Switcher & Restart
+        document.querySelectorAll('.hall-tab').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            AudioEngine.unlock();
+            const idx = Number(btn.dataset.hall);
+            document.getElementById('intro-overlay').classList.add('hidden');
+            document.getElementById('hall-transition-overlay').classList.add('hidden');
+            document.getElementById('summary-overlay').classList.add('hidden');
+            loadHall(idx);
+            beginHallEntryWalk('bannerHallEnter', { code: HALLS[idx].code, name: HALLS[idx].name });
+          });
+        });
+
+        document.getElementById('restart-hall-btn').addEventListener('click', () => {
+          AudioEngine.unlock();
+          document.getElementById('hall-transition-overlay').classList.add('hidden');
+          document.getElementById('summary-overlay').classList.add('hidden');
+          loadHall(state.hallIndex);
+          beginHallEntryWalk('bannerRestart', { code: HALLS[state.hallIndex].code });
+        });
+
+        // Intro Sequence (~7 seconds, 3 beats, skippable anytime)
+        const introOverlay = document.getElementById('intro-overlay');
+        const introStageBox = document.getElementById('intro-stage-box');
+        const introProgress = document.getElementById('intro-progress-fill');
+        const INTRO_TOTAL = 7.2;
+
+        function renderIntroBeat(beat) {
+          if (beat === 0) {
+            introStageBox.innerHTML = `
+              <div class="dispatch-speaker">${t('introBeat0Speaker')}</div>
+              <p class="dispatch-quote">${t('introBeat0Quote')}</p>
+            `;
+          } else if (beat === 1) {
+            introStageBox.innerHTML = `
+              <div class="dispatch-speaker">${t('introBeat1Speaker')}</div>
+              <p class="dispatch-quote">${t('introBeat1Quote')}</p>
+            `;
+          } else {
+            introStageBox.innerHTML = `
+              <div class="teams-split">
+                <div class="team-panel">
+                  <h4><span style="width:10px;height:10px;border-radius:2px;background:#1e6fd9;display:inline-block;"></span> ${t('introBeat2BlueTitle')}</h4>
+                  <p>${t('introBeat2BlueDesc')}</p>
+                </div>
+                <div class="team-panel">
+                  <h4><span style="width:10px;height:10px;border-radius:2px;background:#d6b485;display:inline-block;"></span> ${t('introBeat2BeigeTitle')}</h4>
+                  <p>${t('introBeat2BeigeDesc')}</p>
+                </div>
+              </div>
+            `;
+          }
+        }
+
+        // Typewriter Author Credit & Return-to-Start Handler
+        const authorCreditTextEl = document.getElementById('author-credit-text');
+        const authorCreditCaretEl = document.getElementById('author-credit-caret');
+        let authorTypeTimer = null;
+
+        function startAuthorTypewriter(immediate) {
+          if (authorTypeTimer) {
+            clearInterval(authorTypeTimer);
+            authorTypeTimer = null;
+          }
+          if (!authorCreditTextEl) return;
+          const fullText = t('authorCredit');
+          if (immediate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            authorCreditTextEl.textContent = fullText;
+            if (authorCreditCaretEl) authorCreditCaretEl.classList.add('done');
+            return;
+          }
+          authorCreditTextEl.textContent = '';
+          if (authorCreditCaretEl) authorCreditCaretEl.classList.remove('done');
+          let idx = 0;
+          authorTypeTimer = setInterval(() => {
+            idx++;
+            authorCreditTextEl.textContent = fullText.slice(0, idx);
+            if (idx >= fullText.length) {
+              clearInterval(authorTypeTimer);
+              authorTypeTimer = null;
+              setTimeout(() => {
+                if (authorCreditCaretEl && !authorTypeTimer) authorCreditCaretEl.classList.add('done');
+              }, 900);
+            }
+          }, 28);
+        }
+
+        function returnToGameStart() {
+          AudioEngine.unlock();
+          AudioEngine.setMusicActive(false);
+          keysDown.clear();
+          resetJoystick();
+          state.bannerTimer = 0;
+          document.getElementById('tactical-banner').classList.remove('visible');
+          document.getElementById('hall-transition-overlay').classList.add('hidden');
+          document.getElementById('summary-overlay').classList.add('hidden');
+          if (installModal) installModal.classList.add('hidden');
+          state.mode = 'INTRO';
+          state.introElapsed = 0;
+          state.introBeat = 0;
+          introProgress.style.width = '0%';
+          loadHall(0);
+          renderIntroBeat(0);
+          introOverlay.classList.remove('hidden');
+          startAuthorTypewriter(false);
+        }
+
+        const brandHomeBtnEl = document.getElementById('brand-home-btn');
+        if (brandHomeBtnEl) {
+          brandHomeBtnEl.addEventListener('click', returnToGameStart);
+        }
+
+        function skipIntroAndStart() {
+          if (state.mode !== 'INTRO') return;
+          AudioEngine.unlock();
+          introOverlay.classList.add('hidden');
+          beginHallEntryWalk('bannerIntroStart');
+        }
+
+        document.getElementById('intro-start-btn').addEventListener('click', skipIntroAndStart);
+        introOverlay.addEventListener('click', (e) => {
+          if (e.target === introOverlay) skipIntroAndStart();
+        });
+
+        // Hall Transition Intro (Waits for user click / tap / Space / Enter — NO auto-dismiss)
+        const transOverlay = document.getElementById('hall-transition-overlay');
+
+        function renderHallTransitionCard() {
+          const stats = state.lastClearedStats;
+          if (!stats) return;
+          const clearedHall = HALLS[stats.clearedHallIdx];
+          const nextHall = HALLS[stats.nextHallIdx];
+          const search = t('transHallSearch');
+          const prefix = t('transHallPrefix');
+          const nextTitleCode = search && prefix ? nextHall.code.replace(search, prefix) : nextHall.code;
+
+          document.getElementById('trans-kicker').textContent = t('transKicker', { code: clearedHall.code });
+          document.getElementById('trans-title').textContent = t('transTitle', { code: nextTitleCode });
+          document.getElementById('trans-subtitle').textContent = nextHall.name;
+          document.getElementById('trans-green').textContent = `${stats.green}/${stats.total}`;
+          document.getElementById('trans-time').textContent = formatTime(stats.time);
+          document.getElementById('trans-voltage').textContent = String(stats.voltage);
+          document.getElementById('trans-captures').textContent = String(stats.captures);
+          document.getElementById('trans-dispatch').textContent = nextHall.leonDispatch;
+          document.getElementById('trans-skip-btn').textContent = t('transBtn', { code: nextHall.code });
+        }
+
+        function startHallTransitionIntro(nextIdx, clearedStats) {
+          state.mode = 'HALL_TRANSITION';
+          state.transitionElapsed = 0;
+          state.cameraGlide = 1.0;
+          state.lastClearedStats = clearedStats;
+
+          loadHall(nextIdx);
+          renderHallTransitionCard();
+          transOverlay.classList.remove('hidden');
+        }
+
+        function finishHallTransition() {
+          if (state.mode !== 'HALL_TRANSITION') return;
+          AudioEngine.unlock();
+          transOverlay.classList.add('hidden');
+          const hall = HALLS[state.hallIndex];
+          beginHallEntryWalk('bannerHallEnter', { code: hall.code, name: hall.name });
+        }
+
+        document.getElementById('trans-skip-btn').addEventListener('click', finishHallTransition);
+        transOverlay.addEventListener('click', (e) => {
+          if (e.target === transOverlay || e.target.closest('.modal-card')) {
+            if (e.target.id !== 'trans-skip-btn') finishHallTransition();
+          }
+        });
+
+        // Summary / Shift End Modal
+        const summaryOverlay = document.getElementById('summary-overlay');
+        function showSummaryModal(mode) {
+          const modalMode = mode === true ? 'VICTORY' : (mode || 'VICTORY');
+          state.lastSummaryMode = modalMode;
+          const currHall = HALLS[state.hallIndex];
+          if (modalMode === 'TIME_UP') {
+            document.getElementById('summary-kicker').textContent = t('endTimeoutKicker', { code: currHall.code });
+            document.getElementById('summary-title').textContent = t('endTimeoutTitle');
+            document.getElementById('summary-subtitle').textContent = t('endTimeoutSubtitle');
+            document.getElementById('summary-next-btn').textContent = t('sumNextVictoryBtn');
+          } else if (modalMode === 'INACTIVITY') {
+            document.getElementById('summary-kicker').textContent = t('endInactivityKicker', { code: currHall.code });
+            document.getElementById('summary-title').textContent = t('endInactivityTitle');
+            document.getElementById('summary-subtitle').textContent = t('endInactivitySubtitle');
+            document.getElementById('summary-next-btn').textContent = t('sumNextVictoryBtn');
+          } else {
+            document.getElementById('summary-kicker').textContent = t('sumVictoryKicker');
+            document.getElementById('summary-title').textContent = t('sumVictoryTitle');
+            document.getElementById('summary-subtitle').textContent = t('sumVictorySubtitle');
+            document.getElementById('summary-next-btn').textContent = t('sumNextVictoryBtn');
+          }
+          document.getElementById('sum-time').textContent = formatTime(state.hallTimer);
+          document.getElementById('sum-voltage').textContent = String(state.voltageCount);
+          document.getElementById('sum-captures').textContent = String(state.captureCount);
+          summaryOverlay.classList.remove('hidden');
+        }
+
+        document.getElementById('summary-replay-btn').addEventListener('click', () => {
+          AudioEngine.unlock();
+          summaryOverlay.classList.add('hidden');
+          loadHall(state.hallIndex);
+          beginHallEntryWalk('bannerRestart', { code: HALLS[state.hallIndex].code });
+        });
+
+        document.getElementById('summary-next-btn').addEventListener('click', () => {
+          AudioEngine.unlock();
+          summaryOverlay.classList.add('hidden');
+          loadHall(0);
+          beginHallEntryWalk('bannerHallEnter', { code: HALLS[0].code, name: HALLS[0].name });
+        });
+
+        /* =========================================================================
+           10. MAIN LOOP & INIT
+           ========================================================================= */
+        let lastTime = performance.now();
+        let hudAccum = 0;
+
+        function tick(now) {
+          const dt = Math.min(0.05, (now - lastTime) / 1000);
+          lastTime = now;
+
+          if (state.mode === 'INTRO') {
+            state.introElapsed += dt;
+            const pct = Math.min(100, (state.introElapsed / INTRO_TOTAL) * 100);
+            introProgress.style.width = `${pct}%`;
+            const beat = state.introElapsed < 2.2 ? 0 : state.introElapsed < 4.8 ? 1 : 2;
+            if (beat !== state.introBeat) {
+              state.introBeat = beat;
+              renderIntroBeat(beat);
+            }
+          } else if (state.mode === 'HALL_ENTRY') {
+            updateHallEntry(dt);
+          } else if (state.mode === 'HALL_EXIT') {
+            updateHallExit(dt);
+          } else if (state.mode === 'HALL_TRANSITION') {
+            state.transitionElapsed += dt;
+            state.cameraGlide = Math.max(0, state.cameraGlide - dt * 0.95);
+          } else if (state.mode === 'PLAYING') {
+            updateSimulation(dt);
+          }
+
+          hudAccum += dt;
+          if (hudAccum >= 0.08) {
+            hudAccum = 0;
+            updateHUD();
+          }
+
+          render(now / 1000);
+          requestAnimationFrame(tick);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        initPWA();
+        loadHall(0);
+        setLanguage(currentLang);
+        resizeCanvas();
+        requestAnimationFrame(tick);
+      })();
+    </script>
+  </body>
+</html>
